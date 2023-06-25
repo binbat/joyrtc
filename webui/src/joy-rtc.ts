@@ -1,17 +1,17 @@
 import nipplejs from "nipplejs"
 
 class JoyRtcComponent extends HTMLElement {
-	oncallback: (_: string) => void = (_: string) => {}
-	ws: WebSocket | null = null
-	pc: RTCPeerConnection | null = null
-	dc: RTCDataChannel | null = null
+	private ws: WebSocket | null = null
+	private pc: RTCPeerConnection | null = null
+	private dc: RTCDataChannel | null = null
 
 	private bar: HTMLDivElement
+	private root: ShadowRoot
+
 	private domWsState: HTMLParagraphElement
 	private domPcState: HTMLParagraphElement
 	private domDcState: HTMLParagraphElement
 
-	root: ShadowRoot
 
 	constructor() {
 		super()
@@ -52,8 +52,6 @@ class JoyRtcComponent extends HTMLElement {
 		this.root.appendChild(pad)
 
 		const instance = nipplejs.create({
-			//zone: this.$refs.joysticks.children[index],
-			//zone: pad,
 			zone: ipad,
 			mode: 'static',
 			position: { top: '50%', left: '50%' },
@@ -62,28 +60,13 @@ class JoyRtcComponent extends HTMLElement {
 			fadeTime: 200,
 		})
 
-		instance.on('start', (ev) => {
-			console.log(ev)
-			console.log(this.dc)
-			//this.dc?.send("start")
-		})
 		instance.on('move', (e, data) => {
 			console.log(e, data)
 			this.dc?.send(JSON.stringify(data.vector))
-			//this.ws?.send(JSON.stringify({ type: "pad", data: data.vector }))
 		})
-		//instance.on('start', () => this.$set(this.joystick.moving, index, true));
-		//instance.on('end', () => {
-		//	this.$set(this.joystick.moving, index, false);
-		//	this.$set(this.joystick.data, index, { x: 0, y: 0 });
-		//});
-		//instance.on('move', (e, data) => this.$set(this.joystick.data, index, data.vector));
-
 
 		const content = template.content.cloneNode(true)
     this.root.appendChild(content)
-		//this.autoplay = true
-		//this.debug = true
 	}
 
 	set websocketState(state: string) {
@@ -132,13 +115,11 @@ class JoyRtcComponent extends HTMLElement {
 			if (sdp.type === "answer") {
 				if (!this.pc) return
 				this.pc.setRemoteDescription(sdp)
-			//} else {
-
 			}
-
 		}
 	}
 
+	// TODO: webrtc start need iceServers config
 	//async startWebRTC(config: RTCConfiguration) {
 	async startWebRTC() {
 		console.log(this.ws)
@@ -149,32 +130,21 @@ class JoyRtcComponent extends HTMLElement {
 		const pc = new RTCPeerConnection()
 		this.pc = pc
 
-		//this.dc = pc.createDataChannel("data")
 		this.dc = pc.createDataChannel("data", {
 			negotiated: true,
 			id: 0,
-			//id: 1,
 		})
 
-		//this.pc.ondatachannel = ev => {
-		//	this.dc = ev.channel
-
-			this.dc.onopen = ev => {
-				//this.dc?.send("_")
-				this.dataChannelState = ev.type
-			}
-			this.dc.onclose = ev => this.dataChannelState = ev.type
-			this.dc.onerror = ev => this.dataChannelState = ev.type
-			this.dc.onmessage = ev => console.log(ev.data)
-		//}
+		this.dc.onopen = ev => this.dataChannelState = ev.type
+		this.dc.onclose = ev => this.dataChannelState = ev.type
+		this.dc.onerror = ev => this.dataChannelState = ev.type
+		this.dc.onmessage = ev => console.log(ev.data)
 
 		pc.onicecandidate = (ev: RTCPeerConnectionIceEvent) => ev.candidate ? console.log(ev) : ws.send(JSON.stringify(pc.localDescription))
 		pc.oniceconnectionstatechange = _ => this.webrtcState = pc.iceConnectionState
 		pc.addTransceiver('video', {'direction': 'recvonly'})
 
 		pc.ontrack = (event) => {
-			//var el = document.createElement<HTMLVideoElement>(event.track.kind)
-			console.log(event.track.kind)
 			var el = document.createElement(event.track.kind as "video")
 			el.srcObject = event.streams[0]
 			el.autoplay = true
@@ -186,34 +156,35 @@ class JoyRtcComponent extends HTMLElement {
 			this.root.appendChild(el)
 		}
 
-		//pc.onnegotiationneeded = async _ => {
-			const offer =	await pc.createOffer()
-			await pc.setLocalDescription(offer)
-		//}
+		const offer =	await pc.createOffer()
+		await pc.setLocalDescription(offer)
 	}
 
+	// WebComponents hook
 	connectedCallback() {
-    console.log('当自定义元素第一次被连接到文档DOM时被调用')
-    console.log("autoplay: ", this.autoplay)
+		console.log('当自定义元素第一次被连接到文档DOM时被调用')
+		console.log("autoplay: ", this.autoplay)
 		console.log(navigator.getGamepads())
-		//this.aaa()
 		if (this.autoplay) {
 			console.log("autoplay")
 			this.startWebsocket()
 		}
-  }
+	}
 
-  disconnectedCallback() {
-    console.log('当自定义元素与文档DOM断开连接时被调用')
-  }
+	// WebComponents hook
+	disconnectedCallback() {
+		console.log('当自定义元素与文档DOM断开连接时被调用')
+	}
 
-  adoptedCallback() {
-    console.log('当自定义元素被移动到新文档时被调用')
-  }
+	// WebComponents hook
+	adoptedCallback() {
+		console.log('当自定义元素被移动到新文档时被调用')
+	}
 
-  attributeChangedCallback() {
-    console.log('当自定义元素的一个属性被增加、移除或更改时被调用')
-  }
+	// WebComponents hook
+	attributeChangedCallback() {
+		console.log('当自定义元素的一个属性被增加、移除或更改时被调用')
+	}
 
 }
 

@@ -23,7 +23,8 @@ public class joyrtc : MonoBehaviour {
 
 	private static RTCConfiguration GetSelectedSdpSemantics() {
 		RTCConfiguration config = default;
-		//config.iceServers = new[] {new RTCIceServer {urls = new[] {"stun:stun.l.google.com:19302"}}};
+		// TODO: need config from the cloud
+		// config.iceServers = new[] {new RTCIceServer {urls = new[] {"stun:stun.l.google.com:19302"}}};
 		return config;
 	}
 
@@ -77,31 +78,10 @@ public class joyrtc : MonoBehaviour {
 		var configuration = GetSelectedSdpSemantics();
 		_pc = new RTCPeerConnection(ref configuration);
 
-    //_pc.OnIceCandidate = candidate => {
-		//	ws.Send(JsonUtility.ToJson(candidate));
-		//	//RTCSessionDescription offer = JsonUtility.FromJson<RTCSessionDescription>(e.Data);
-		//	//Debug.Log("Candidate", JsonUtility.ToJson(candidate));
-		//	//Debug.Log("Candidate", candidate.Candidate);
-		//	//Debug.Log(candidate);
-		//};
-		//_pc.OnDataChannel = dataChannel => {
-		//	Debug.Log("OnDataChannel");
-
-		//	dataChannel.OnOpen = () => {
-		//		Debug.Log("DataChannel Opened");
-		//	};
-		//	dataChannel.OnClose = () => {
-		//		Debug.Log("DataChannel Closed");
-		//	};
-		//	dataChannel.OnMessage = bytes => {
-		//		Debug.Log(bytes);
-		//	};
-		//};
 		RTCDataChannelInit conf = new RTCDataChannelInit();
 		conf.negotiated = true;
 		conf.id = 0;
     var dataChannel = _pc.CreateDataChannel("data", conf);
-		//Debug.Log("DataChannel", dataChannel);
 		dataChannel.OnOpen = () => {
 
 			// TODO: This has a weird problem
@@ -157,7 +137,7 @@ public class joyrtc : MonoBehaviour {
 		StartCoroutine(WebRTC.Update());
 		StartCoroutine(AsyncWebRTCCoroutine());
 
-		//using (var ws = new WebSocket ("ws://127.0.0.1:8080")) {
+		// TODO: this address need from "ENV"
 		ws = new WebSocket ("ws://127.0.0.1:8080");
 		ws.OnMessage += (sender, e) => {
 			Debug.Log("Received message: " + e.Data);
