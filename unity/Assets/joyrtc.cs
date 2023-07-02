@@ -8,13 +8,20 @@ public class SDPData {
 	public string type;
 	public string sdp;
 }
+[System.Serializable]
+public class MyObject
+{
+    public float x;
+    public float y;
+}
 
 public class joyrtc : MonoBehaviour {
 #pragma warning disable 0649
 	[SerializeField] private Camera cam;
+    [SerializeField] private GameObject cube; // 添加一个立方体游戏对象
 #pragma warning restore 0649
 
-	private bool connected;
+    private bool connected;
 	private WebSocket ws;
 	private RTCSessionDescription? sdp;
 	private RTCPeerConnection _pc;
@@ -95,11 +102,19 @@ public class joyrtc : MonoBehaviour {
 		dataChannel.OnClose = () => {
 			Debug.Log("DataChannel Closed");
 		};
-		dataChannel.OnMessage = bytes => {
-			Debug.Log(System.Text.Encoding.UTF8.GetString(bytes));
-		};
 
-		_pc.OnIceConnectionChange = state => {
+
+        dataChannel.OnMessage = bytes => {
+            string message = System.Text.Encoding.UTF8.GetString(bytes);
+            MyObject myObject = JsonUtility.FromJson<MyObject>(message);
+
+            // 将x和y应用到物体的移动
+            cube.transform.position += new Vector3(myObject.x * 0.05f, myObject.y * 0.05f, 0);
+        };
+
+
+
+        _pc.OnIceConnectionChange = state => {
 			Debug.Log($"IceConnectionState: {state}");
 			if (state == RTCIceConnectionState.Disconnected) {
 				connected = false;
