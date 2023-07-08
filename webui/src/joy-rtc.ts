@@ -45,25 +45,52 @@ class JoyRtcComponent extends HTMLElement {
 
 		this.bar.appendChild(button)
 
-		const pad = document.createElement("div")
-		pad.innerText = "555"
-		const ipad = document.createElement("div")
-		pad.appendChild(ipad)
-		this.root.appendChild(pad)
+ 		  // 创建两个容器
+    const pad1 = document.createElement("div");
+    pad1.innerText = "摇杆1";
+    const pad2 = document.createElement("div");
+    pad2.innerText = "摇杆2";
+    const ipad1 = document.createElement("div");
+    const ipad2 = document.createElement("div");
+    pad1.appendChild(ipad1);
+    pad2.appendChild(ipad2);
+    this.root.appendChild(pad1);
+    this.root.appendChild(pad2);
 
-		const instance = nipplejs.create({
-			zone: ipad,
-			mode: 'static',
-			position: { top: '50%', left: '50%' },
-			dynamicPage: true,
-			restOpacity: 0.6,
-			fadeTime: 200,
-		})
+    // 创建第一个摇杆
+    const instance1 = nipplejs.create({
+        zone: ipad1,
+        mode: 'static',
+        position: {
+            top: '50%',
+            left: '25%'
+        },
+        dynamicPage: true,
+        restOpacity: 0.6,
+        fadeTime: 200
+    });
+instance1.on('move', (e, data) => {
+  const message = { joystick1: { x: data.vector.x, y: data.vector.y }};
+  this.dc?.send(JSON.stringify(message));
+});
 
-		instance.on('move', (e, data) => {
-			console.log(e, data)
-			this.dc?.send(JSON.stringify(data.vector))
-		})
+
+    // 创建第二个摇杆
+    const instance2 = nipplejs.create({
+        zone: ipad2,
+        mode: 'static',
+        position: {
+            top: '50%',
+            left: '75%'
+        },
+        dynamicPage: true,
+        restOpacity: 0.6,
+        fadeTime: 200
+    });
+instance2.on('move', (e, data) => {
+  const message = { joystick2: { x: data.vector.x, y: data.vector.y }};
+  this.dc?.send(JSON.stringify(message));
+});
 
 		const content = template.content.cloneNode(true)
     this.root.appendChild(content)

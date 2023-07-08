@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.WebRTC;
 using WebSocketSharp;
+using TMPro;
 
 public class SDPData {
 	public string type;
@@ -13,6 +14,11 @@ public class MyObject
 {
     public float x;
     public float y;
+}
+public class MessageData
+{
+    public MyObject joystick1;
+    public MyObject joystick2;
 }
 
 public class joyrtc : MonoBehaviour {
@@ -103,16 +109,26 @@ public class joyrtc : MonoBehaviour {
 			Debug.Log("DataChannel Closed");
 		};
 
-
         dataChannel.OnMessage = bytes => {
             string message = System.Text.Encoding.UTF8.GetString(bytes);
-            MyObject myObject = JsonUtility.FromJson<MyObject>(message);
-
+            MessageData messageData = JsonUtility.FromJson<MessageData>(message);
+            float joystick1X = messageData.joystick1.x;
+            float joystick1Y = messageData.joystick1.y;
+            float joystick2X = messageData.joystick2.x;
+            float joystick2Y = messageData.joystick2.y;
+            Debug.Log(message);
             // 将x和y应用到物体的移动
-            cube.transform.position += new Vector3(myObject.x * 0.05f, myObject.y * 0.05f, 0);
+
+            // 旋转
+            cube.transform.rotation *= Quaternion.Euler(0, joystick2X * 2f, 0);
+
+            // 移动
+            Vector3 forwardVector = cube.transform.forward;
+            Vector3 rightVector = cube.transform.right;
+            Vector3 verticalMovement = cube.transform.up * joystick2Y * 0.05f;
+            Vector3 horizontalMovement = (forwardVector * joystick1Y + rightVector * joystick1X) * 0.05f;
+            cube.transform.position += verticalMovement + horizontalMovement;
         };
-
-
 
         _pc.OnIceConnectionChange = state => {
 			Debug.Log($"IceConnectionState: {state}");
