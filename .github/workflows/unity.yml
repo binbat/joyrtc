@@ -1,0 +1,17 @@
+name: unity
+on: [push, pull_request]
+jobs:
+  test:
+    name: Unity Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Unity runner
+        uses: game-ci/unity-test-runner@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          projectPath: unity
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+
