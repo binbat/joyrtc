@@ -5,6 +5,7 @@ using UnityEngine;
 using Unity.WebRTC;
 using WebSocketSharp;
 using TMPro;
+using System;
 
 public class SDPData {
 	public string type;
@@ -26,6 +27,7 @@ public class joyrtc : MonoBehaviour {
 #pragma warning disable 0649
 	[SerializeField] private Camera cam;
     [SerializeField] private GameObject cube; // 添加一个立方体游戏对象
+    private bool enableCameraModeToggle = false;
 #pragma warning restore 0649
 
     private bool connected;
@@ -118,6 +120,12 @@ public class joyrtc : MonoBehaviour {
             float joystick2X = messageData.joystick2.x;
             float joystick2Y = messageData.joystick2.y;
             Debug.Log(message);
+
+            //前端按下button后切换模式
+            if (dataChannel != null && message == "{\"type\":\"camera_mode_toggle\"}")
+            {
+                enableCameraModeToggle = true;
+            }
             // 将x和y应用到物体的移动
 
             // 旋转
@@ -187,5 +195,15 @@ public class joyrtc : MonoBehaviour {
 		Debug.Log("=== Start END ===");
 	}
 
-	void Update() {}
-}
+    void Update()
+    {
+        if (enableCameraModeToggle)
+        {
+            ThirdPersonCamera cameraScript = cam.GetComponent<ThirdPersonCamera>();
+            cameraScript.ToggleModifyValues();
+            enableCameraModeToggle = false;
+        }
+    }
+ }
+
+
