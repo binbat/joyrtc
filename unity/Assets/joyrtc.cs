@@ -1,8 +1,11 @@
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.WebRTC;
 using WebSocketSharp;
+using TMPro;
+using System;
 
 public class SDPData {
 	public string type;
@@ -14,11 +17,17 @@ public class MyObject
     public float x;
     public float y;
 }
+public class MessageData
+{
+    public MyObject joystick1;
+    public MyObject joystick2;
+}
 
 public class joyrtc : MonoBehaviour {
 #pragma warning disable 0649
 	[SerializeField] private Camera cam;
     [SerializeField] private GameObject cube; // 添加一个立方体游戏对象
+    private bool enableCameraModeToggle = false;
 #pragma warning restore 0649
 
     private bool connected;
@@ -103,16 +112,32 @@ public class joyrtc : MonoBehaviour {
 			Debug.Log("DataChannel Closed");
 		};
 
-
         dataChannel.OnMessage = bytes => {
             string message = System.Text.Encoding.UTF8.GetString(bytes);
-            MyObject myObject = JsonUtility.FromJson<MyObject>(message);
+            MessageData messageData = JsonUtility.FromJson<MessageData>(message);
+            float joystick1X = messageData.joystick1.x;
+            float joystick1Y = messageData.joystick1.y;
+            float joystick2X = messageData.joystick2.x;
+            float joystick2Y = messageData.joystick2.y;
+            Debug.Log(message);
 
+            //前端按下button后切换模式
+            if (dataChannel != null && message == "{\"type\":\"camera_mode_toggle\"}")
+            {
+                enableCameraModeToggle = true;
+            }
             // 将x和y应用到物体的移动
-            cube.transform.position += new Vector3(myObject.x * 0.05f, myObject.y * 0.05f, 0);
+
+            // 旋转
+            cube.transform.rotation *= Quaternion.Euler(0, joystick2X * 2f, 0);
+
+            // 移动
+            Vector3 forwardVector = cube.transform.forward;
+            Vector3 rightVector = cube.transform.right;
+            Vector3 verticalMovement = cube.transform.up * joystick2Y * 0.05f;
+            Vector3 horizontalMovement = (forwardVector * joystick1Y + rightVector * joystick1X) * 0.05f;
+            cube.transform.position += verticalMovement + horizontalMovement;
         };
-
-
 
         _pc.OnIceConnectionChange = state => {
 			Debug.Log($"IceConnectionState: {state}");
@@ -170,5 +195,15 @@ public class joyrtc : MonoBehaviour {
 		Debug.Log("=== Start END ===");
 	}
 
-	void Update() {}
-}
+    void Update()
+    {
+        if (enableCameraModeToggle)
+        {
+            ThirdPersonCamera cameraScript = cam.GetComponent<ThirdPersonCamera>();
+            cameraScript.ToggleModifyValues();
+            enableCameraModeToggle = false;
+        }
+    }
+ }
+
+

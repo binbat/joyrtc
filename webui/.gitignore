@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 
+# Visual Studio cache directory
+.vs/
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
