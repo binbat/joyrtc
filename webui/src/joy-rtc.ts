@@ -199,31 +199,45 @@ class JoyRtcComponent extends HTMLElement {
 		this.startGamepadListening();
 	}
 
-	    private startGamepadListening() {
-        if (!this.gamepadIndex) {
-            window.addEventListener("gamepadconnected", (event) => {
-                const gamepad = event.gamepad;
-                this.gamepadIndex = gamepad.index;
-                this.domGamepadState.innerHTML = `gamepad: connected`;
-                
-                this.gamepadAxesListener = (event) => {
-                    const axes = gamepad.axes;
-					const message = {
-						 joystick1: { x: axes[0], y: axes[1] },
-						 joystick2: { x: axes[2], y: axes[3] }, // 添加了第二个摇杆的数据
-				};
+	private startGamepadListening() {
+    if (!this.gamepadIndex) {
+        window.addEventListener("gamepadconnected", (event) => {
+            const gamepad = event.gamepad;
+            this.gamepadIndex = gamepad.index;
+            this.domGamepadState.innerHTML = `gamepad: connected`;
+
+            this.gamepadAxesListener = (event) => {
+                const axes = event.gamepad.axes;
+
+                // 判断摇杆数量
+                if (axes.length >= 4) {
+                    // 检查摇杆是否停止移动
+					const joystick1 = { x: axes[0] || 0, y: -(axes[1] || 0) };
+					const joystick2 = { x: axes[2] || 0, y: -(axes[3] || 0) };
+
+                    const message = { joystick1, joystick2 };
                     this.dc?.send(JSON.stringify(message));
-                };
+                }
+            };
 
-                window.requestAnimationFrame(this.checkGamepadAxes);
-            });
+            window.addEventListener("gamepaddisconnected", this.gamepadStopListener);
 
-            window.addEventListener("gamepaddisconnected", (event) => {
-                this.gamepadIndex = null;
-                this.domGamepadState.innerHTML = `gamepad: disconnected`;
-            });
-        }
+            window.requestAnimationFrame(this.checkGamepadAxes);
+        });
+
+        window.addEventListener("gamepaddisconnected", (event) => {
+            this.gamepadIndex = null;
+            this.domGamepadState.innerHTML = `gamepad: disconnected`;
+
+            // 移除停止监听器
+            window.removeEventListener("gamepaddisconnected", this.gamepadStopListener);
+            this.gamepadStopListener = null;
+        });
     }
+    window.requestAnimationFrame(this.checkGamepadAxes);
+}
+
+
 
 	    private checkGamepadAxes = () => {
         if (this.gamepadIndex !== null && this.gamepadAxesListener) {
