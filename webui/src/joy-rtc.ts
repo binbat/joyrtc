@@ -1,3 +1,4 @@
+
 import nipplejs from "nipplejs";
 
 class JoyRtcComponent extends HTMLElement {
@@ -11,6 +12,10 @@ class JoyRtcComponent extends HTMLElement {
 	private domWsState: HTMLParagraphElement;
 	private domPcState: HTMLParagraphElement;
 	private domDcState: HTMLParagraphElement;
+	private domGamepadState: HTMLParagraphElement; // 添加了domGamepadState变量
+
+	private gamepadIndex: number | null = null;
+    private gamepadAxesListener: ((event: GamepadEvent) => void) | null = null;
 
 	constructor() {
 		super();
@@ -30,6 +35,9 @@ class JoyRtcComponent extends HTMLElement {
 
 		this.domDcState = document.createElement("p");
 		this.bar.appendChild(this.domDcState);
+
+		this.domGamepadState = document.createElement("p"); // 添加了domGamepadState初始化
+		this.bar.appendChild(this.domGamepadState); // 添加了domGamepadState元素
 
 		this.websocketState = "uninit";
 		this.webrtcState = "uninit";
@@ -148,6 +156,7 @@ class JoyRtcComponent extends HTMLElement {
 				this.pc.setRemoteDescription(sdp);
 			}
 		};
+		this.startGamepadListening();
 	}
 
 	async startWebRTC() {
@@ -187,7 +196,59 @@ class JoyRtcComponent extends HTMLElement {
 
 		const offer = await pc.createOffer();
 		await pc.setLocalDescription(offer);
+		this.startGamepadListening();
 	}
+
+	private startGamepadListening() {
+    if (!this.gamepadIndex) {
+        window.addEventListener("gamepadconnected", (event) => {
+            const gamepad = event.gamepad;
+            this.gamepadIndex = gamepad.index;
+            this.domGamepadState.innerHTML = `gamepad: connected`;
+
+            this.gamepadAxesListener = (event) => {
+                const axes = event.gamepad.axes;
+
+                // 判断摇杆数量
+                if (axes.length >= 4) {
+                    // 检查摇杆是否停止移动
+					const joystick1 = { x: axes[0] || 0, y: -(axes[1] || 0) };
+					const joystick2 = { x: axes[2] || 0, y: -(axes[3] || 0) };
+
+                    const message = { joystick1, joystick2 };
+                    this.dc?.send(JSON.stringify(message));
+                }
+            };
+
+            window.addEventListener("gamepaddisconnected", this.gamepadStopListener);
+
+            window.requestAnimationFrame(this.checkGamepadAxes);
+        });
+
+        window.addEventListener("gamepaddisconnected", (event) => {
+            this.gamepadIndex = null;
+            this.domGamepadState.innerHTML = `gamepad: disconnected`;
+
+            // 移除停止监听器
+            window.removeEventListener("gamepaddisconnected", this.gamepadStopListener);
+            this.gamepadStopListener = null;
+        });
+    }
+    window.requestAnimationFrame(this.checkGamepadAxes);
+}
+
+
+
+	    private checkGamepadAxes = () => {
+        if (this.gamepadIndex !== null && this.gamepadAxesListener) {
+            const gamepad = navigator.getGamepads()[this.gamepadIndex];
+            if (gamepad) {
+                this.gamepadAxesListener({ gamepad });
+            }
+        }
+
+        window.requestAnimationFrame(this.checkGamepadAxes);
+    }
 
 	handleClick() {
 	const message = { type: "camera_mode_toggle" };
@@ -222,3 +283,4 @@ class JoyRtcComponent extends HTMLElement {
 
 customElements.define("joy-rtc", JoyRtcComponent);
 export default JoyRtcComponent;
+
