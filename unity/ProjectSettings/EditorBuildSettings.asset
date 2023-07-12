@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
-    path: Assets/Samples/WebRTC/3.0.0-pre.5/Example/Menu/Menu.unity
-    guid: f74260b9867fa524a9677fe64004f4f9
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
   m_configObjects: {}
