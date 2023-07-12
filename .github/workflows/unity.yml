@@ -13,11 +13,25 @@ jobs:
           dotnet-version: '7.0.x'
       - name: NuGet install
         run: pushd unity/Assets && nuget install && popd
-      - name: Unity runner
-        uses: game-ci/unity-test-runner@v2
+          #      - name: Unity runner
+          #        uses: game-ci/unity-test-runner@v2
+          #        env:
+          #          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          #        with:
+          #          projectPath: unity
+          #          githubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build project
+        uses: game-ci/unity-builder@v2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+            #UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+            #UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           projectPath: unity
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          targetPlatform: StandaloneLinux64
+      - name: Upload to artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Build
+          path: build
 

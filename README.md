@@ -22,6 +22,12 @@ Use Unity run
 
 NOTE: Do not use safemode, The first run need auto install websocket-sharp
 
+**Maybe manual install `websocket-sharp`**
+
+```bash
+pushd unity/Assets && nuget install && popd
+```
+
 ### Webui
 
 ```bash
