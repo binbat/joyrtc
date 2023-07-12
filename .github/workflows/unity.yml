@@ -7,6 +7,12 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+      - name: NuGet install
+        run: pushd unity/Assets && nuget install && popd
       - name: Unity runner
         uses: game-ci/unity-test-runner@v2
         env:
