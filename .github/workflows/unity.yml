@@ -29,6 +29,7 @@ jobs:
         UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
       with:
         projectPath: unity
+        buildName: joyrtc-unity
         targetPlatform: StandaloneLinux64
     - name: Upload to artifact
       uses: actions/upload-artifact@v3
