@@ -5,6 +5,12 @@ jobs:
   test:
     name: Unity Test
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform:
+        - StandaloneWindows64
+        - StandaloneLinux64
     steps:
     - name: Check out code
       uses: actions/checkout@v3
@@ -30,10 +36,10 @@ jobs:
       with:
         projectPath: unity
         buildName: joyrtc-unity
-        targetPlatform: StandaloneLinux64
+        targetPlatform: ${{ matrix.targetPlatform }}
     - name: Upload to artifact
       uses: actions/upload-artifact@v3
       with:
-        name: Build
-        path: build
+        name: JoyRTC-Unity-${{ matrix.targetPlatform }}
+        path: build/${{ matrix.targetPlatform }}
 
