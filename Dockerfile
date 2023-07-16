@@ -30,7 +30,7 @@ ADD https://gist.githubusercontent.com/a-wing/f7b074770b558e114911e339bb6a3e84/r
 RUN chmod +x /usr/bin/multirun.sh
 
 COPY --from=builder-cloud /src/joyrtc-cloud /usr/bin/joyrtc-cloud
-COPY StandaloneLinux64 /usr/lib/joyrtc-unity
+COPY build/StandaloneLinux64 /usr/lib/joyrtc-unity
 RUN chmod +x /usr/lib/joyrtc-unity/joyrtc-unity
 
 EXPOSE 8080/tcp
