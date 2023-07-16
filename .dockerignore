@@ -1,0 +1,10 @@
+# Logs
+webui/**/logs
+webui/**/*.log
+
+webui/**/node_modules
+webui/**/dist
+webui/**/*.local
+
+Dockerfile
+fly.toml
