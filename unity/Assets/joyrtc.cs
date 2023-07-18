@@ -1,4 +1,3 @@
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -37,12 +36,15 @@ public class joyrtc : MonoBehaviour {
 	private MediaStream videoStream;
 	private List<RTCRtpSender> pcSenders;
 
-	private static RTCConfiguration GetSelectedSdpSemantics() {
-		RTCConfiguration config = default;
-		// TODO: need config from the cloud
-		// config.iceServers = new[] {new RTCIceServer {urls = new[] {"stun:stun.l.google.com:19302"}}};
-		return config;
-	}
+  private static RTCConfiguration GetSelectedSdpSemantics() {
+    RTCConfiguration config = default;
+    string envIceServers = System.Environment.GetEnvironmentVariable("ICE_SERVERS");
+    Debug.Log("Use WebRTC IceServers: " + envIceServers);
+    if (!string.IsNullOrEmpty(envIceServers)) {
+      config.iceServers = new[] {new RTCIceServer {urls = new[] {envIceServers}}};
+    }
+    return config;
+  }
 
 	private void AddTracks() {
 		foreach (var track in videoStream.GetTracks()) {
@@ -179,6 +181,7 @@ public class joyrtc : MonoBehaviour {
 
 		string envServerUrl = System.Environment.GetEnvironmentVariable("SERVER_URL");
 		string serverUrl = string.IsNullOrEmpty(envServerUrl) ? "ws://127.0.0.1:8080" : envServerUrl;
+		Debug.Log("Use WebSocket Server: " + serverUrl);
 		ws = new WebSocket(serverUrl);
 		ws.OnMessage += (sender, e) => {
 			Debug.Log("Received message: " + e.Data);
