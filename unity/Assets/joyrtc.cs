@@ -6,6 +6,13 @@ using WebSocketSharp;
 using TMPro;
 using System;
 
+public class CandidateData {
+  public string type;
+  public string label;
+  //public int id;
+  public string candidate;
+}
+
 public class SDPData {
 	public string type;
 	public string sdp;
@@ -103,11 +110,26 @@ public class joyrtc : MonoBehaviour {
 		}
 	}
 
-	private IEnumerator AsyncWebRTCCoroutine() {
-		Debug.Log("=== WebRTC Start ===");
-		connected = false;
-		var configuration = GetSelectedSdpSemantics();
-		_pc = new RTCPeerConnection(ref configuration);
+  private IEnumerator AsyncWebRTCCoroutine() {
+    Debug.Log("=== WebRTC Start ===");
+    connected = false;
+    var configuration = GetSelectedSdpSemantics();
+    _pc = new RTCPeerConnection(ref configuration);
+
+    _pc.OnIceCandidate = candidate => {
+      Debug.Log("ICE: " + candidate.Candidate);
+
+      // https://docs.unity3d.com/Packages/com.unity.webrtc@3.0/api/Unity.WebRTC.RTCIceCandidate.html#Unity_WebRTC_RTCIceCandidate_SdpMLineIndex
+      //if (candidate.SdpMLineIndex.HasValue) {
+      CandidateData obj = new CandidateData() {
+        type = "ice",
+        label = candidate.SdpMid,
+        //id = candidate.SdpMLineIndex.Value,
+        candidate = candidate.Candidate,
+      };
+      ws.Send(JsonUtility.ToJson(obj));
+      //}
+    };
 
 		RTCDataChannelInit conf = new RTCDataChannelInit();
 		conf.negotiated = true;
@@ -118,7 +140,7 @@ public class joyrtc : MonoBehaviour {
 			// TODO: This has a weird problem
 			// NOTE: Maybe this a bug for lib
 			// Must onopen send a message from the Unity
-			dataChannel.Send("_");
+			// dataChannel.Send("_");
 			// === END ===
 
 			Debug.Log("DataChannel Opened");
