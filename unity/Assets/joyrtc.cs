@@ -43,6 +43,19 @@ public class joyrtc : MonoBehaviour {
     if (!string.IsNullOrEmpty(envIceServers)) {
       config.iceServers = new[] {new RTCIceServer {urls = new[] {envIceServers}}};
     }
+
+    string envTurnHostname = System.Environment.GetEnvironmentVariable("TURN_HOSTNAME");
+    Debug.Log("Use WebRTC Turn Server: " + envTurnHostname);
+    if (!string.IsNullOrEmpty(envIceServers)) {
+      string envTurnUsername = System.Environment.GetEnvironmentVariable("TURN_USERNAME");
+      string envTurnPassword = System.Environment.GetEnvironmentVariable("TURN_PASSWORD");
+      config.iceServers = new[] {new RTCIceServer {
+        urls = new[] {envTurnHostname},
+        username = envTurnUsername,
+        credential = envTurnPassword,
+      }};
+    }
+
     return config;
   }
 
