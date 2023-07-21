@@ -153,7 +153,13 @@ class JoyRtcComponent extends HTMLElement {
 			if (sdp.type === "answer") {
 				if (!this.pc) return;
 				this.pc.setRemoteDescription(sdp);
-			}
+      } else if (sdp.type === "ice") {
+        this.pc?.addIceCandidate(new RTCIceCandidate({
+          //sdpMLineIndex: sdp.id,
+          sdpMid: sdp.label,
+          candidate: sdp.candidate,
+        }));
+      }
 		};
 		this.startGamepadListening();
 	}

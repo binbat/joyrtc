@@ -1,4 +1,3 @@
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,6 +5,13 @@ using Unity.WebRTC;
 using WebSocketSharp;
 using TMPro;
 using System;
+
+public class CandidateData {
+  public string type;
+  public string label;
+  //public int id;
+  public string candidate;
+}
 
 public class SDPData {
 	public string type;
@@ -37,12 +43,28 @@ public class joyrtc : MonoBehaviour {
 	private MediaStream videoStream;
 	private List<RTCRtpSender> pcSenders;
 
-	private static RTCConfiguration GetSelectedSdpSemantics() {
-		RTCConfiguration config = default;
-		// TODO: need config from the cloud
-		// config.iceServers = new[] {new RTCIceServer {urls = new[] {"stun:stun.l.google.com:19302"}}};
-		return config;
-	}
+  private static RTCConfiguration GetSelectedSdpSemantics() {
+    RTCConfiguration config = default;
+    string envIceServers = System.Environment.GetEnvironmentVariable("ICE_SERVERS");
+    Debug.Log("Use WebRTC IceServers: " + envIceServers);
+    if (!string.IsNullOrEmpty(envIceServers)) {
+      config.iceServers = new[] {new RTCIceServer {urls = new[] {envIceServers}}};
+    }
+
+    string envTurnHostname = System.Environment.GetEnvironmentVariable("TURN_HOSTNAME");
+    Debug.Log("Use WebRTC Turn Server: " + envTurnHostname);
+    if (!string.IsNullOrEmpty(envIceServers)) {
+      string envTurnUsername = System.Environment.GetEnvironmentVariable("TURN_USERNAME");
+      string envTurnPassword = System.Environment.GetEnvironmentVariable("TURN_PASSWORD");
+      config.iceServers = new[] {new RTCIceServer {
+        urls = new[] {envTurnHostname},
+        username = envTurnUsername,
+        credential = envTurnPassword,
+      }};
+    }
+
+    return config;
+  }
 
 	private void AddTracks() {
 		foreach (var track in videoStream.GetTracks()) {
@@ -88,11 +110,26 @@ public class joyrtc : MonoBehaviour {
 		}
 	}
 
-	private IEnumerator AsyncWebRTCCoroutine() {
-		Debug.Log("=== WebRTC Start ===");
-		connected = false;
-		var configuration = GetSelectedSdpSemantics();
-		_pc = new RTCPeerConnection(ref configuration);
+  private IEnumerator AsyncWebRTCCoroutine() {
+    Debug.Log("=== WebRTC Start ===");
+    connected = false;
+    var configuration = GetSelectedSdpSemantics();
+    _pc = new RTCPeerConnection(ref configuration);
+
+    _pc.OnIceCandidate = candidate => {
+      Debug.Log("ICE: " + candidate.Candidate);
+
+      // https://docs.unity3d.com/Packages/com.unity.webrtc@3.0/api/Unity.WebRTC.RTCIceCandidate.html#Unity_WebRTC_RTCIceCandidate_SdpMLineIndex
+      //if (candidate.SdpMLineIndex.HasValue) {
+      CandidateData obj = new CandidateData() {
+        type = "ice",
+        label = candidate.SdpMid,
+        //id = candidate.SdpMLineIndex.Value,
+        candidate = candidate.Candidate,
+      };
+      ws.Send(JsonUtility.ToJson(obj));
+      //}
+    };
 
 		RTCDataChannelInit conf = new RTCDataChannelInit();
 		conf.negotiated = true;
@@ -103,7 +140,7 @@ public class joyrtc : MonoBehaviour {
 			// TODO: This has a weird problem
 			// NOTE: Maybe this a bug for lib
 			// Must onopen send a message from the Unity
-			dataChannel.Send("_");
+			// dataChannel.Send("_");
 			// === END ===
 
 			Debug.Log("DataChannel Opened");
@@ -176,6 +213,7 @@ public class joyrtc : MonoBehaviour {
 		}
 		StartCoroutine(WebRTC.Update());
 		StartCoroutine(AsyncWebRTCCoroutine());
+
 
     string envServerUrl = System.Environment.GetEnvironmentVariable("SERVER_URL");
     string serverUrl = string.IsNullOrEmpty(envServerUrl) ? "ws://127.0.0.1:8080" : envServerUrl;
