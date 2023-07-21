@@ -214,11 +214,11 @@ public class joyrtc : MonoBehaviour {
 		StartCoroutine(WebRTC.Update());
 		StartCoroutine(AsyncWebRTCCoroutine());
 
-		string envServerUrl = System.Environment.GetEnvironmentVariable("SERVER_URL");
-		string serverUrl = string.IsNullOrEmpty(envServerUrl) ? "ws://127.0.0.1:8080" : envServerUrl;
-		Debug.Log("Use WebSocket Server: " + serverUrl);
-		ws = new WebSocket(serverUrl);
-		ws.OnMessage += (sender, e) => {
+
+    string envServerUrl = System.Environment.GetEnvironmentVariable("SERVER_URL");
+    string serverUrl = string.IsNullOrEmpty(envServerUrl) ? "ws://127.0.0.1:8080" : envServerUrl;
+    ws = new WebSocket(serverUrl);
+    ws.OnMessage += (sender, e) => {
 			Debug.Log("Received message: " + e.Data);
 			RTCSessionDescription offer = JsonUtility.FromJson<RTCSessionDescription>(e.Data);
 			if (offer.type == RTCSdpType.Offer) {

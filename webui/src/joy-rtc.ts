@@ -1,4 +1,3 @@
-
 import nipplejs from "nipplejs";
 
 class JoyRtcComponent extends HTMLElement {
@@ -82,7 +81,7 @@ class JoyRtcComponent extends HTMLElement {
 			restOpacity: 0.6,
 			fadeTime: 200,
 		});
-		instance1.on("move", (e, data) => {
+		instance1.on("move", (_, data) => {
 			const message = { joystick1: { x: data.vector.x, y: data.vector.y } };
 			this.dc?.send(JSON.stringify(message));
 		});
@@ -99,7 +98,7 @@ class JoyRtcComponent extends HTMLElement {
 			restOpacity: 0.6,
 			fadeTime: 200,
 		});
-		instance2.on("move", (e, data) => {
+		instance2.on("move", (_, data) => {
 			const message = { joystick2: { x: data.vector.x, y: data.vector.y } };
 			this.dc?.send(JSON.stringify(message));
 		});
@@ -205,51 +204,53 @@ class JoyRtcComponent extends HTMLElement {
 		this.startGamepadListening();
 	}
 
-	private startGamepadListening() {
+  private startGamepadListening() {
     if (!this.gamepadIndex) {
-        window.addEventListener("gamepadconnected", (event) => {
-            const gamepad = event.gamepad;
-            this.gamepadIndex = gamepad.index;
-            this.domGamepadState.innerHTML = `gamepad: connected`;
+      window.ongamepaddisconnected = (event) => {
+        const gamepad = event.gamepad;
+        this.gamepadIndex = gamepad.index;
+        this.domGamepadState.innerHTML = `gamepad: connected`;
 
-            this.gamepadAxesListener = (event) => {
-                const axes = event.gamepad.axes;
+        this.gamepadAxesListener = () => {
+          if (this.gamepadIndex) {
+            const gamepad = navigator.getGamepads()[this.gamepadIndex];
+            if (gamepad) {
+              const axes = gamepad.axes;
 
-                // 判断摇杆数量
-                if (axes.length >= 4) {
-                    // 检查摇杆是否停止移动
-					const joystick1 = { x: axes[0] || 0, y: -(axes[1] || 0) };
-					const joystick2 = { x: axes[2] || 0, y: -(axes[3] || 0) };
+              // 判断摇杆数量
+              if (axes.length >= 4) {
+                // 检查摇杆是否停止移动
+                const joystick1 = { x: axes[0] || 0, y: -(axes[1] || 0) };
+                const joystick2 = { x: axes[2] || 0, y: -(axes[3] || 0) };
 
-                    const message = { joystick1, joystick2 };
-                    this.dc?.send(JSON.stringify(message));
-                }
-            };
+                const message = { joystick1, joystick2 };
+                this.dc?.send(JSON.stringify(message));
+              }
+            }
+          }
+        }
 
-            window.addEventListener("gamepaddisconnected", this.gamepadStopListener);
+        window.addEventListener("gamepaddisconnected", this.gamepadAxesListener);
 
-            window.requestAnimationFrame(this.checkGamepadAxes);
-        });
+        window.requestAnimationFrame(this.checkGamepadAxes);
+      }
 
-        window.addEventListener("gamepaddisconnected", (event) => {
+        window.addEventListener("gamepaddisconnected", () => {
             this.gamepadIndex = null;
             this.domGamepadState.innerHTML = `gamepad: disconnected`;
 
             // 移除停止监听器
-            window.removeEventListener("gamepaddisconnected", this.gamepadStopListener);
-            this.gamepadStopListener = null;
+            window.removeEventListener("gamepaddisconnected", this.gamepadAxesListener!);
+            this.gamepadAxesListener = null;
         });
     }
     window.requestAnimationFrame(this.checkGamepadAxes);
 }
-
-
-
 	    private checkGamepadAxes = () => {
         if (this.gamepadIndex !== null && this.gamepadAxesListener) {
             const gamepad = navigator.getGamepads()[this.gamepadIndex];
             if (gamepad) {
-                this.gamepadAxesListener({ gamepad });
+                this.gamepadAxesListener(new GamepadEvent("gamepaddisconnected", { gamepad }));
             }
         }
 
@@ -289,4 +290,3 @@ class JoyRtcComponent extends HTMLElement {
 
 customElements.define("joy-rtc", JoyRtcComponent);
 export default JoyRtcComponent;
-
