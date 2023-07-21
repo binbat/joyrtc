@@ -8,7 +8,7 @@ import './joy-rtc'
 
 import { useState } from 'react';
 
-type CustomElement<T> = Partial<T & DOMAttributes<T> & { children: any }>;
+type CustomElement<T> = Partial<T & DOMAttributes<T> & { children: any } & { style?: any }>;
 
 declare global {
   namespace JSX {
