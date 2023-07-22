@@ -1,13 +1,13 @@
-#FROM node:20-alpine as builder-webui
-#
-#WORKDIR /src
-#
-#COPY webui/package.json webui/package-lock.json .
-#RUN npm install
-#
-#COPY webui .
-#
-#RUN npm run build
+FROM node:20-alpine as builder-webui
+
+WORKDIR /src
+
+COPY webui/package.json webui/package-lock.json .
+RUN npm install
+
+COPY webui .
+
+RUN npm run build
 
 FROM golang:1.20-alpine AS builder-cloud
 
@@ -18,7 +18,7 @@ RUN go mod download
 
 COPY cloud .
 
-#COPY --from=builder-webui /src/build /src/build
+COPY --from=builder-webui /src/dist /src/dist
 
 RUN go build -o joyrtc-cloud
 
