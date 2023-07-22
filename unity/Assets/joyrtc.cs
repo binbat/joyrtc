@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.WebRTC;
 using WebSocketSharp;
-using TMPro;
-using System;
 
 public class CandidateData {
   public string type;
@@ -30,13 +28,15 @@ public class MessageData
 }
 
 public class joyrtc : MonoBehaviour {
+  const string DefaultServer = "ws://localhost:8080/socket";
+
 #pragma warning disable 0649
-	[SerializeField] private Camera cam;
-    [SerializeField] private GameObject cube; // 添加一个立方体游戏对象
-    private bool enableCameraModeToggle = false;
+  [SerializeField] private Camera cam;
+  [SerializeField] private GameObject cube;
 #pragma warning restore 0649
 
-    private bool connected;
+  private bool enableCameraModeToggle = false;
+  private bool connected;
 	private WebSocket ws;
 	private RTCSessionDescription? sdp;
 	private RTCPeerConnection _pc;
@@ -214,9 +214,8 @@ public class joyrtc : MonoBehaviour {
 		StartCoroutine(WebRTC.Update());
 		StartCoroutine(AsyncWebRTCCoroutine());
 
-
     string envServerUrl = System.Environment.GetEnvironmentVariable("SERVER_URL");
-    string serverUrl = string.IsNullOrEmpty(envServerUrl) ? "ws://127.0.0.1:8080" : envServerUrl;
+    string serverUrl = string.IsNullOrEmpty(envServerUrl) ? DefaultServer : envServerUrl;
     ws = new WebSocket(serverUrl);
     ws.OnMessage += (sender, e) => {
 			Debug.Log("Received message: " + e.Data);
