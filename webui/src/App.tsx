@@ -7,6 +7,7 @@ import JoyRtcComponent from './joy-rtc'
 import './joy-rtc'
 
 import { useState } from 'react';
+import { ProtoHttpToWs } from './util';
 
 type CustomElement<T> = Partial<T & DOMAttributes<T> & { children: any } & { style?: any }>;
 
@@ -23,7 +24,7 @@ function App() {
 
   return (
     <>
-      <joy-rtc address="ws://localhost:8080" style={{ width: "1024px" }}></joy-rtc>
+      <joy-rtc address={ ProtoHttpToWs(location.href) + "socket" } style={{ width: "1024px" }}></joy-rtc>
       <div>
         <a href="https://vitejs.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
