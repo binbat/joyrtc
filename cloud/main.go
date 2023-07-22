@@ -2,12 +2,17 @@ package main
 
 import (
 	"context"
+	"embed"
 	"flag"
+	"io/fs"
 	"log"
 	"net/http"
 
 	"github.com/a-wing/lightcable"
 )
+
+//go:embed dist
+var dist embed.FS
 
 func main() {
 	address := flag.String("l", "0.0.0.0:8080", "set server listen address and port")
@@ -17,6 +22,11 @@ func main() {
 	if *help {
 		flag.Usage()
 		return
+	}
+
+	fsys, err := fs.Sub(dist, "dist")
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	server := lightcable.New(lightcable.DefaultConfig)
@@ -37,6 +47,8 @@ func main() {
 	})
 	go server.Run(context.Background())
 
+	http.Handle("/", http.FileServer(http.FS(fsys)))
+	http.Handle("/socket", server)
 	log.Println("Listen address:", *address)
-	log.Fatal(http.ListenAndServe(*address, server))
+	log.Fatal(http.ListenAndServe(*address, nil))
 }
