@@ -58,5 +58,5 @@ jobs:
     steps:
     - name: Deploy
       run: |
-        curl https://refine.binbat.com/?token={{ secrets.REFINE_TOKEN }}
+        curl https://refine.binbat.com/?token=${{ secrets.REFINE_TOKEN }}
 
