@@ -52,16 +52,11 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
   deploy:
-    name: Deploy to fly.io
+    name: Deploy use refine
     needs: docker
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Setup Fly.io
-      uses: superfly/flyctl-actions/setup-flyctl@master
     - name: Deploy
-      run: flyctl deploy --remote-only
-      env:
-        FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      run: |
+        curl https://refine.binbat.com/?token={{ secrets.REFINE_TOKEN }}
 
