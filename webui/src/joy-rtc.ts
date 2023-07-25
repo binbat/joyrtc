@@ -169,7 +169,18 @@ class JoyRtcComponent extends HTMLElement {
 		if (!this.ws) return;
 		this.webrtcState = "init";
 		const ws = this.ws;
-		const pc = new RTCPeerConnection();
+		const pc = new RTCPeerConnection({
+        iceServers: [
+          {
+            urls: ["stun:stun.22333.fun"],
+          },
+          {
+            urls: "turn:turn.22333.fun",
+            username: "filegogo",
+            credential: "filegogo",
+          },
+        ],
+    });
 		this.pc = pc;
 
 		this.dc = pc.createDataChannel("data", {

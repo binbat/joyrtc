@@ -36,7 +36,7 @@ Variable Name  | Description                                              | Defa
 `TURN_HOSTNAME`| Turn Server Address Configuration                        |
 `TURN_USERNAME`| Turn Server Username, Need set `TURN_HOSTNAME`           |
 `TURN_PASSWORD`| Turn Server Password, Need set `TURN_HOSTNAME`           |
-`SERVER_URL`   | WebSocket Signal Address                                 | `ws://127.0.0.1:8080`
+`SERVER_URL`   | WebSocket Signal Address                                 | `ws://localhost:8080/socket`
 
 ### WebUI
 
