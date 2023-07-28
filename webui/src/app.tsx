@@ -1,5 +1,5 @@
-import { DOMAttributes } from 'react';
-import './app2.css'
+import { DOMAttributes } from "react"
+import "./app.css"
 
 import JoyRtcComponent from './joy-rtc'
 import './joy-rtc'
