@@ -272,31 +272,17 @@ class JoyRtcComponent extends HTMLElement {
 	const message = { type: "camera_mode_toggle" };
 	 this.dc?.send(JSON.stringify(message));
 	}
-	// WebComponents hook
-	connectedCallback() {
-		console.log("当自定义元素第一次被连接到文档DOM时被调用");
-		console.log("autoplay: ", this.autoplay);
-		console.log(navigator.getGamepads());
-		if (this.autoplay) {
-			console.log("autoplay");
-			this.startWebsocket();
-		}
-	}
 
-	// WebComponents hook
-	disconnectedCallback() {
-		console.log("当自定义元素与文档DOM断开连接时被调用");
-	}
-
-	// WebComponents hook
-	adoptedCallback() {
-		console.log("当自定义元素被移动到新文档时被调用");
-	}
-
-	// WebComponents hook
-	attributeChangedCallback() {
-		console.log("当自定义元素的一个属性被增加、移除或更改时被调用");
-	}
+  // WebComponents hook
+  // https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#using_the_lifecycle_callbacks
+  connectedCallback() {
+    console.log("autoplay: ", this.autoplay);
+    console.log(navigator.getGamepads());
+    if (this.autoplay) {
+      console.log("autoplay");
+      this.startWebsocket();
+    }
+  }
 }
 
 customElements.define("joy-rtc", JoyRtcComponent);
