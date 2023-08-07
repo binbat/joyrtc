@@ -1,5 +1,7 @@
 # JoyRTC
 
+You can use this tool to control some devices using WebRTC, but currently only unity
+
 ## Architecture
 
 ![joyrtc-arch](./joyrtc.png)
