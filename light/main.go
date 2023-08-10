@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 	"log"
 
 	"github.com/bluenviron/gortsplib/v3"
@@ -15,18 +15,16 @@ import (
 	"github.com/pion/webrtc/v3"
 )
 
-var addr = flag.String("addr", "localhost:8080", "http service address")
-
 func main() {
-	c := gortsplib.Client{}
+	srcUrl := flag.String("url", "rtsp://localhost:8554/mystream", "rtsp url")
+	server := flag.String("addr", "ws://localhost:8080/socket", "server address")
 
-	// parse URL
-	u, err := url.Parse("rtsp://localhost:8554/mystream")
+	u, err := url.Parse(*srcUrl)
 	if err != nil {
 		panic(err)
 	}
 
-	// connect to the server
+	c := gortsplib.Client{}
 	err = c.Start(u.Scheme, u.Host)
 	if err != nil {
 		panic(err)
@@ -55,7 +53,7 @@ func main() {
 		panic(err)
 	}
 
-	ws, _, err := websocket.DefaultDialer.Dial("ws://localhost:8080/socket", nil)
+	ws, _, err := websocket.DefaultDialer.Dial(*server, nil)
 	if err != nil {
 		log.Fatal("dial:", err)
 	}
@@ -146,4 +144,3 @@ func main() {
 	// wait until a fatal error
 	panic(c.Wait())
 }
-
