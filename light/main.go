@@ -15,6 +15,10 @@ import (
 	"github.com/pion/webrtc/v3"
 )
 
+// WebRTC DataChannel
+// - use hook exec script
+// - socket jsonrpc, maybe lsp on socket
+
 func main() {
 	srcUrl := flag.String("url", "rtsp://localhost:8554/mystream", "rtsp url")
 	server := flag.String("addr", "ws://localhost:8080/socket", "server address")
@@ -69,6 +73,29 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	negotiated := true
+	//ordered := true
+	dataChannelID := uint16(0)
+
+	dc, err := peerConnection.CreateDataChannel("data", &webrtc.DataChannelInit{
+		Negotiated: &negotiated,
+		ID:         &dataChannelID,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	dc.OnOpen(func() {
+		fmt.Println("dataChannel Opened")
+	})
+	dc.OnMessage(func(msg webrtc.DataChannelMessage) {
+		fmt.Printf("%s\n", msg.Data)
+	})
+	dc.OnClose(func() {
+		fmt.Println("dataChannel Closed")
+	})
+
 	// Create a video track
 	videoTrack, err := webrtc.NewTrackLocalStaticRTP(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeVP8}, "video", "pion")
 	if err != nil {
@@ -139,6 +166,14 @@ func main() {
 
 	if err := ws.WriteJSON(*peerConnection.LocalDescription()); err != nil {
 		panic(err)
+	}
+
+	for {
+		ice := webrtc.ICECandidate{}
+		if err := ws.ReadJSON(&ice); err != nil {
+			panic(err)
+		}
+		fmt.Println(ice)
 	}
 
 	// wait until a fatal error
