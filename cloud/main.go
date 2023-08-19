@@ -3,25 +3,25 @@ package main
 import (
 	"context"
 	"embed"
-	"flag"
 	"io/fs"
 	"log"
 	"net/http"
 
 	"github.com/a-wing/lightcable"
+	"github.com/caarlos0/env/v9"
 )
 
 //go:embed dist
 var dist embed.FS
 
-func main() {
-	address := flag.String("l", "0.0.0.0:8080", "set server listen address and port")
-	help := flag.Bool("h", false, "this help")
-	flag.Parse()
+type config struct {
+	Listen string `env:"LISTEN" envDefault:"0.0.0.0:8080"`
+}
 
-	if *help {
-		flag.Usage()
-		return
+func main() {
+	cfg := config{}
+	if err := env.Parse(&cfg); err != nil {
+		log.Panicf("%+v\n", err)
 	}
 
 	fsys, err := fs.Sub(dist, "dist")
@@ -49,6 +49,6 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.FS(fsys)))
 	http.Handle("/socket", server)
-	log.Println("Listen address:", *address)
-	log.Fatal(http.ListenAndServe(*address, nil))
+	log.Println("Listen address:", cfg.Listen)
+	log.Fatal(http.ListenAndServe(cfg.Listen, nil))
 }

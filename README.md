@@ -11,8 +11,14 @@ You can use this tool to control some devices using WebRTC, but currently only u
 ### Cloud
 
 ```bash
-go run ./main.go -l 0.0.0.0:8080
+LISTEN=0.0.0.0:8080 go run ./...
 ```
+
+Environment variables
+
+Variable Name  | Description                                              | Default
+-------------- | -------------------------------------------------------- | -------------------------------------------------------------
+`LISTEN`       | Server Listen Address                                    | `0.0.0.0:8080`
 
 ### Unity
 
