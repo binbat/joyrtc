@@ -20,8 +20,8 @@ import (
 // - socket jsonrpc, maybe lsp on socket
 
 func main() {
-	srcUrl := flag.String("url", "rtsp://localhost:8554/mystream", "rtsp url")
-	server := flag.String("addr", "ws://localhost:8080/socket", "server address")
+	srcUrl := flag.String("src", "rtsp://localhost:8554/mystream", "rtsp url")
+	server := flag.String("server", "ws://localhost:8080/socket", "server address")
 
 	u, err := url.Parse(*srcUrl)
 	if err != nil {
