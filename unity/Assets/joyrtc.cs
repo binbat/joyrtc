@@ -37,7 +37,6 @@ public class joyrtc : MonoBehaviour
 #pragma warning disable 0649
   [SerializeField] private Camera cam;
   [SerializeField] private GameObject cube;
-
   [SerializeField] private AudioSource audioSource;
 #pragma warning restore 0649
 
