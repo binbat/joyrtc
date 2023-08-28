@@ -178,7 +178,7 @@ public class joyrtc : MonoBehaviour
             float joystick2X = messageData.joystick2.x;
             float joystick2Y = messageData.joystick2.y;
             Debug.Log(message);
-
+          
             //前端按下button后切换模式
             if (dataChannel != null && message == "{\"type\":\"camera_mode_toggle\"}")
             {
