@@ -32,6 +32,7 @@ public class MessageData
 
 
 public class joyrtc : MonoBehaviour
+
 {
   const string DefaultServer = "ws://localhost:8080/socket";
 #pragma warning disable 0649
