@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.WebRTC;
 using WebSocketSharp;
 
+
 public class CandidateData
 {
   public string type;
@@ -29,11 +30,14 @@ public class MessageData
   public MyObject joystick2;
 }
 
-public class joyrtc : MonoBehaviour {
+
+public class joyrtc : MonoBehaviour
+{
   const string DefaultServer = "ws://localhost:8080/socket";
 #pragma warning disable 0649
   [SerializeField] private Camera cam;
   [SerializeField] private GameObject cube;
+  [SerializeField] private AudioSource audioSource;
 #pragma warning restore 0649
 
   private bool enableCameraModeToggle = false;
@@ -239,6 +243,8 @@ public class joyrtc : MonoBehaviour {
     }
     StartCoroutine(WebRTC.Update());
     StartCoroutine(AsyncWebRTCCoroutine());
+
+    audioSource = FindObjectOfType<AudioListener>().GetComponent<AudioSource>();
 
     string envServerUrl = System.Environment.GetEnvironmentVariable("SERVER_URL");
     string serverUrl = string.IsNullOrEmpty(envServerUrl) ? DefaultServer : envServerUrl;
