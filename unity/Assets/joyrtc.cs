@@ -38,6 +38,8 @@ public class joyrtc : MonoBehaviour
   [SerializeField] private Camera cam;
   [SerializeField] private GameObject cube;
   [SerializeField] private AudioSource audioSource;
+  [SerializeField] private MediaStream audioStream;
+
 #pragma warning restore 0649
 
   private bool enableCameraModeToggle = false;
@@ -81,8 +83,15 @@ public class joyrtc : MonoBehaviour
       Debug.Log("track: " + track);
       pcSenders.Add(_pc.AddTrack(track, videoStream));
     }
-  }
 
+    // 添加音频轨道
+    foreach (var track in audioStream.GetTracks())
+    {
+      Debug.Log("track: " + track);
+      pcSenders.Add(_pc.AddTrack(track, audioStream));
+    }
+
+  }
 
   private IEnumerator OnCreateOffer(RTCPeerConnection pc, RTCSessionDescription desc)
   {
@@ -214,6 +223,14 @@ public class joyrtc : MonoBehaviour
       _pc.AddTrack(track, videoStream);
     }
 
+    //调用AddTracks()方法来添加音频轨道到WebRTC
+    //foreach (var track in audioStream.GetTracks())
+    //{
+    //  Debug.Log("track: " + track);
+    //  _pc.AddTrack(track, audioStream);
+    //}
+
+
     RTCSessionDescription offer;
     while (sdp == null)
     {
@@ -244,7 +261,14 @@ public class joyrtc : MonoBehaviour
     StartCoroutine(WebRTC.Update());
     StartCoroutine(AsyncWebRTCCoroutine());
 
-    audioSource = FindObjectOfType<AudioListener>().GetComponent<AudioSource>();
+    //audioSource = GetComponent<AudioSource>();
+
+    //AudioStreamTrack audioStreamTrack = new AudioStreamTrack(audioSource);
+
+    //foreach (var track in audioStream.GetTracks())
+    //{
+    //  pcSenders.Add(_pc.AddTrack(track, audioStream));
+    //}
 
     string envServerUrl = System.Environment.GetEnvironmentVariable("SERVER_URL");
     string serverUrl = string.IsNullOrEmpty(envServerUrl) ? DefaultServer : envServerUrl;
