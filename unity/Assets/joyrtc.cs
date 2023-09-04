@@ -39,7 +39,6 @@ public class joyrtc : MonoBehaviour
   [SerializeField] private GameObject cube;
   [SerializeField] private AudioSource audioSource;
   [SerializeField] private MediaStream audioStream;
-
 #pragma warning restore 0649
 
   private bool enableCameraModeToggle = false;
