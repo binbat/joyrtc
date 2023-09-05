@@ -38,7 +38,7 @@ public class joyrtc : MonoBehaviour
   [SerializeField] private Camera cam;
   [SerializeField] private GameObject cube;
   [SerializeField] private AudioSource audioSource;
-  [SerializeField] private MediaStream audioStream;
+  private AudioStreamTrack audioStreamTrack;
 
 #pragma warning restore 0649
 
@@ -48,7 +48,9 @@ public class joyrtc : MonoBehaviour
 	private RTCSessionDescription? sdp;
 	private RTCPeerConnection _pc;
 	private MediaStream videoStream;
-	private List<RTCRtpSender> pcSenders;
+
+  private List<RTCRtpSender> pcSenders = new List<RTCRtpSender>();
+  private MediaStream audioStream = new MediaStream();
 
   private static RTCConfiguration GetSelectedSdpSemantics()
   {
@@ -224,11 +226,11 @@ public class joyrtc : MonoBehaviour
     }
 
     //调用AddTracks()方法来添加音频轨道到WebRTC
-    //foreach (var track in audioStream.GetTracks())
-    //{
-    //  Debug.Log("track: " + track);
-    //  _pc.AddTrack(track, audioStream);
-    //}
+    foreach (var track in audioStream.GetTracks())
+    {
+      Debug.Log("track: " + track);
+      _pc.AddTrack(track, audioStream);
+    }
 
 
     RTCSessionDescription offer;
@@ -261,14 +263,26 @@ public class joyrtc : MonoBehaviour
     StartCoroutine(WebRTC.Update());
     StartCoroutine(AsyncWebRTCCoroutine());
 
-    //audioSource = GetComponent<AudioSource>();
+    audioSource = GetComponent<AudioSource>();
 
-    //AudioStreamTrack audioStreamTrack = new AudioStreamTrack(audioSource);
+    pcSenders = new List<RTCRtpSender>();
+    audioStream = new MediaStream();
 
-    //foreach (var track in audioStream.GetTracks())
-    //{
-    //  pcSenders.Add(_pc.AddTrack(track, audioStream));
-    //}
+    // audioSource 是否为 null
+    if (audioSource != null)
+    {
+      Debug.Log("audioSource exists!");
+      // 创建 `AudioStreamTrack` 对象并将 `audioSource` 作为参数传递
+      audioStreamTrack = new AudioStreamTrack(audioSource);
+
+      // 将音频轨道添加到 WebRTC 连接的音频流中
+      _pc.AddTrack(audioStreamTrack, audioStream);
+    }
+    else
+    {
+      Debug.Log("audioSource does not exist!");
+    }
+
 
     string envServerUrl = System.Environment.GetEnvironmentVariable("SERVER_URL");
     string serverUrl = string.IsNullOrEmpty(envServerUrl) ? DefaultServer : envServerUrl;
