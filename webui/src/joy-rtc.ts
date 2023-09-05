@@ -198,16 +198,32 @@ class JoyRtcComponent extends HTMLElement {
 		pc.oniceconnectionstatechange = (_) => (this.webrtcState = pc.iceConnectionState);
 		pc.addTransceiver("video", { direction: "recvonly" });
 
-		pc.ontrack = (event) => {
-			var el = document.createElement(event.track.kind as "video");
-			el.srcObject = event.streams[0];
-			el.autoplay = true;
-			el.controls = true;
-			el.muted = true;
-			el.style.width = "inherit";
-			el.style.height = "inherit";
+    //// 添加接收音频的轨道
+    //pc.addTransceiver("audio", { direction: "recvonly" });
 
-			this.root.appendChild(el);
+		pc.ontrack = (event) => {
+      if (event.track.kind === "audio")
+      {
+        // 处理接收到的音频轨道
+        const audioElement = document.createElement("audio");
+        audioElement.srcObject = event.streams[0];
+        audioElement.autoplay = true;
+        audioElement.controls = true;
+        audioElement.muted = false;
+
+        document.body.appendChild(audioElement);
+      }
+      else if (event.track.kind === "video")
+      {
+        // 处理接收到的视频轨道
+        const videoElement = document.createElement("video");
+        videoElement.srcObject = event.streams[0];
+        videoElement.autoplay = true;
+        videoElement.controls = true;
+        videoElement.muted = false;
+
+        document.body.appendChild(videoElement);
+      }
 		};
 
 		const offer = await pc.createOffer();
