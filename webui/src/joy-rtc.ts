@@ -144,7 +144,7 @@ class JoyRtcComponent extends HTMLElement {
 			this.startWebRTC();
 		};
 		this.ws.onclose = (ev) => (this.websocketState = ev.type);
-		this.ws.onerror = (ev) => (this.websocketState = ev.type);
+    this.ws.onerror = (ev) => (this.websocketState = ev.type);
 
 		this.ws.onmessage = (ev) => {
 			console.log("onmessage", ev.data);

@@ -28,6 +28,7 @@ public class MessageData
 {
   public MyObject joystick1;
   public MyObject joystick2;
+  public string text; // 添加文本数据的属性
 }
 
 
@@ -51,6 +52,14 @@ public class joyrtc : MonoBehaviour
 
   private List<RTCRtpSender> pcSenders = new List<RTCRtpSender>();
   private MediaStream audioStream = new MediaStream();
+  //定义一个变量来储存要发送的文本数据
+  private string textToSend;
+
+  //添加三个公共属性来存储速度数据
+  public float VelocityX { get; set; }
+  public float VelocityY { get; set; }
+  public float VelocityZ { get; set; }
+
 
   private static RTCConfiguration GetSelectedSdpSemantics()
   {
@@ -314,5 +323,29 @@ public class joyrtc : MonoBehaviour
       cameraScript.ToggleModifyValues();
       enableCameraModeToggle = false;
     }
+
+
+      // 创建一个消息对象，将速度数据存储在其中
+      MessageData messageData = new MessageData
+      {
+        joystick1 = new MyObject(),
+        joystick2 = new MyObject(),
+        text = null, // 不发送文本数据
+      };
+      // 设置速度数据
+      messageData.joystick1.x = VelocityX;
+      messageData.joystick1.y = VelocityY;
+      messageData.joystick2.x = VelocityZ;
+
+      // 将消息对象转换为 JSON 字符串
+      string messageJson = JsonUtility.ToJson(messageData);
+
+      // 发送消息
+      ws.Send(messageJson);
+
+      // 清空速度数据
+      VelocityX = 0;
+      VelocityY = 0;
+      VelocityZ = 0;
   }
 }
