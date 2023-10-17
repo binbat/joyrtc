@@ -8,6 +8,12 @@ You can use this tool to control some devices using WebRTC, but currently only u
 
 ## Run
 
+Use docker run
+
+```bash
+docker run --name joyrtc --rm --network host -e TURN_HOSTNAME=turn:turn.22333.fun -e TURN_USERNAME=filegogo -e TURN_PASSWORD=filegogo ghcr.io/binbat/joyrtc:main
+```
+
 ### Cloud
 
 ```bash

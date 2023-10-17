@@ -50,7 +50,13 @@ RUN apt update -y && apt install --no-install-recommends -y libx11-dev tigervnc-
 
 EXPOSE 8080/tcp
 
+# For China: please use `stun:cn.22333.fun`
 ENV ICE_SERVERS="stun:stun.22333.fun"
+
+# For China: please use `turn:cn.22333.fun`
+ENV TURN_HOSTNAME="turn:turn.22333.fun"
+ENV TURN_USERNAME="22333"
+ENV TURN_PASSWORD="22333"
 
 ENTRYPOINT ["multirun.sh", "/usr/bin/joyrtc-cloud", "tigervncserver -fg -SecurityTypes None -xstartup /usr/lib/joyrtc-unity/joyrtc-unity"]
 
