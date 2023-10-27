@@ -7,7 +7,7 @@ public class CanvasTextSender : MonoBehaviour
 
   private void Start()
   {
-    ws = new WebSocket("ws://your_websocket_server_address");
+    //ws = new WebSocket("ws://your_websocket_server_address");
     ws.OnOpen += OnWebSocketOpen;
     ws.OnClose += OnWebSocketClose;
     ws.OnError += OnWebSocketError;

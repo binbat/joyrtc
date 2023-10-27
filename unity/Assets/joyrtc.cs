@@ -38,8 +38,8 @@ public class joyrtc : MonoBehaviour
 #pragma warning disable 0649
   [SerializeField] private Camera cam;
   [SerializeField] private GameObject cube;
-  [SerializeField] private AudioSource audioSource;
-  private AudioStreamTrack audioStreamTrack;
+  //[SerializeField] private AudioSource audioSource;
+  //private AudioStreamTrack audioStreamTrack;
 
 #pragma warning restore 0649
 
@@ -51,7 +51,8 @@ public class joyrtc : MonoBehaviour
 	private MediaStream videoStream;
 
   private List<RTCRtpSender> pcSenders = new List<RTCRtpSender>();
-  private MediaStream audioStream = new MediaStream();
+  //private MediaStream audioStream = new MediaStream();
+
   //定义一个变量来储存要发送的文本数据
   private string textToSend;
 
@@ -95,12 +96,12 @@ public class joyrtc : MonoBehaviour
       pcSenders.Add(_pc.AddTrack(track, videoStream));
     }
 
-    // 添加音频轨道
-    foreach (var track in audioStream.GetTracks())
-    {
-      Debug.Log("track: " + track);
-      pcSenders.Add(_pc.AddTrack(track, audioStream));
-    }
+    //// 添加音频轨道
+    //foreach (var track in audioStream.GetTracks())
+    //{
+    //  Debug.Log("track: " + track);
+    //  pcSenders.Add(_pc.AddTrack(track, audioStream));
+    //}
 
   }
 
@@ -234,12 +235,12 @@ public class joyrtc : MonoBehaviour
       _pc.AddTrack(track, videoStream);
     }
 
-    //调用AddTracks()方法来添加音频轨道到WebRTC
-    foreach (var track in audioStream.GetTracks())
-    {
-      Debug.Log("track: " + track);
-      _pc.AddTrack(track, audioStream);
-    }
+    ////调用AddTracks()方法来添加音频轨道到WebRTC
+    //foreach (var track in audioStream.GetTracks())
+    //{
+    //  Debug.Log("track: " + track);
+    //  _pc.AddTrack(track, audioStream);
+    //}
 
 
     RTCSessionDescription offer;
@@ -272,28 +273,29 @@ public class joyrtc : MonoBehaviour
     StartCoroutine(WebRTC.Update());
     StartCoroutine(AsyncWebRTCCoroutine());
 
-    audioSource = GetComponent<AudioSource>();
+      //audioSource = GetComponent<AudioSource>();
 
-    pcSenders = new List<RTCRtpSender>();
-    audioStream = new MediaStream();
+      pcSenders = new List<RTCRtpSender>();
+      //audioStream = new MediaStream();
+      //Debug.Log("audioStream created.");
 
-    // audioSource 是否为 null
-    if (audioSource != null)
-    {
-      Debug.Log("audioSource exists!");
-      // 创建 `AudioStreamTrack` 对象并将 `audioSource` 作为参数传递
-      audioStreamTrack = new AudioStreamTrack(audioSource);
+      //// audioSource 是否为 null
+      //if (audioSource != null)
+      //{
+      //  Debug.Log("audioSource exists!");
+      //  // 创建 `AudioStreamTrack` 对象并将 `audioSource` 作为参数传递
+      //  audioStreamTrack = new AudioStreamTrack(audioSource);
 
-      // 将音频轨道添加到 WebRTC 连接的音频流中
-      _pc.AddTrack(audioStreamTrack, audioStream);
-    }
-    else
-    {
-      Debug.Log("audioSource does not exist!");
-    }
+      //  // 将音频轨道添加到 WebRTC 连接的音频流中
+      //  _pc.AddTrack(audioStreamTrack, audioStream);
+      //}
+      //else
+      //{
+      //  Debug.Log("audioSource does not exist!");
+      //}
 
 
-    string envServerUrl = System.Environment.GetEnvironmentVariable("SERVER_URL");
+      string envServerUrl = System.Environment.GetEnvironmentVariable("SERVER_URL");
     string serverUrl = string.IsNullOrEmpty(envServerUrl) ? DefaultServer : envServerUrl;
     ws = new WebSocket(serverUrl);
     ws.OnMessage += (sender, e) => {
