@@ -20,7 +20,7 @@ COPY cloud .
 
 COPY --from=builder-webui /src/dist /src/dist
 
-RUN go build -o joyrtc-cloud
+RUN go build -tags release -o joyrtc-cloud
 
 FROM debian:bookworm
 
