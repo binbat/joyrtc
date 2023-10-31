@@ -11,13 +11,13 @@ You can use this tool to control some devices using WebRTC, but currently only u
 Use docker run
 
 ```bash
-docker run --name joyrtc --rm --network host -e TURN_HOSTNAME=turn:turn.22333.fun -e TURN_USERNAME=filegogo -e TURN_PASSWORD=filegogo ghcr.io/binbat/joyrtc:main
+docker run --name joyrtc --rm --network host -e TURN_HOSTNAME=turn:turn.22333.fun -e TURN_USERNAME=22333 -e TURN_PASSWORD=22333 ghcr.io/binbat/joyrtc:main
 ```
 
 ### Cloud
 
 ```bash
-LISTEN=0.0.0.0:8080 go run ./...
+LISTEN=0.0.0.0:8080 go run .
 ```
 
 Environment variables
@@ -46,7 +46,7 @@ use Adapter control anything
 A RTSP to WebRTC forwarder
 
 ```bash
-./light -src rtsp://localhost:8554/mystream -server ws://localhost:8080/socket
+go run . -src rtsp://localhost:8554/mystream -server ws://localhost:8080/socket
 ```
 
 ### Adapter: Unity

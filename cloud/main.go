@@ -2,17 +2,12 @@ package main
 
 import (
 	"context"
-	"embed"
-	"io/fs"
 	"log"
 	"net/http"
 
 	"github.com/a-wing/lightcable"
 	"github.com/caarlos0/env/v9"
 )
-
-//go:embed dist
-var dist embed.FS
 
 type config struct {
 	Listen string `env:"LISTEN" envDefault:"0.0.0.0:8080"`
@@ -22,11 +17,6 @@ func main() {
 	cfg := config{}
 	if err := env.Parse(&cfg); err != nil {
 		log.Panicf("%+v\n", err)
-	}
-
-	fsys, err := fs.Sub(dist, "dist")
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	server := lightcable.New(lightcable.DefaultConfig)
@@ -47,7 +37,7 @@ func main() {
 	})
 	go server.Run(context.Background())
 
-	http.Handle("/", http.FileServer(http.FS(fsys)))
+	http.Handle("/", http.FileServer(http.FS(dist)))
 	http.Handle("/socket", server)
 	log.Println("Listen address:", cfg.Listen)
 	log.Fatal(http.ListenAndServe(cfg.Listen, nil))
