@@ -17,7 +17,7 @@ docker run --name joyrtc --rm --network host -e TURN_HOSTNAME=turn:turn.22333.fu
 ### Cloud
 
 ```bash
-LISTEN=0.0.0.0:8080 go run ./...
+LISTEN=0.0.0.0:8080 go run .
 ```
 
 Environment variables
@@ -46,7 +46,7 @@ use Adapter control anything
 A RTSP to WebRTC forwarder
 
 ```bash
-./light -src rtsp://localhost:8554/mystream -server ws://localhost:8080/socket
+go run . -src rtsp://localhost:8554/mystream -server ws://localhost:8080/socket
 ```
 
 ### Adapter: Unity

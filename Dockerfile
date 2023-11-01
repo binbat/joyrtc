@@ -20,11 +20,11 @@ COPY cloud .
 
 COPY --from=builder-webui /src/dist /src/dist
 
-RUN go build -o joyrtc-cloud
+RUN go build -tags release -o joyrtc-cloud
 
 FROM debian:bookworm
 
-ADD https://gist.githubusercontent.com/a-wing/f7b074770b558e114911e339bb6a3e84/raw/de87e005cab863700ff69895e11bcef33325e893/multirun.sh /usr/bin/multirun.sh
+ADD https://gist.githubusercontent.com/a-wing/f7b074770b558e114911e339bb6a3e84/raw/9529d71fb8abe16fe4900a0232c77b2621c8d318/multirun.sh /usr/bin/multirun.sh
 RUN chmod +x /usr/bin/multirun.sh
 
 COPY --from=builder-cloud /src/joyrtc-cloud /usr/bin/joyrtc-cloud
