@@ -1,20 +1,8 @@
-import { DOMAttributes } from "react"
 import "./app.css"
-
-import JoyRtcComponent from './joy-rtc'
-import './joy-rtc'
+import '../../webcomponent/index'
 
 import { ProtoHttpToWs } from './util';
 
-type CustomElement<T> = Partial<T & DOMAttributes<T> & { children: any } & { style?: any }>;
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      ['joy-rtc']: CustomElement<JoyRtcComponent>;
-    }
-  }
-}
 
 function App() {
   return (

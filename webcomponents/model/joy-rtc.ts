@@ -1,6 +1,6 @@
 import nipplejs from "nipplejs";
 
-class JoyRtcComponent extends HTMLElement {
+export class JoyRtcComponent extends HTMLElement {
 	private ws: WebSocket | null = null;
 	private pc: RTCPeerConnection | null = null;
 	private dc: RTCDataChannel | null = null;
@@ -302,4 +302,5 @@ class JoyRtcComponent extends HTMLElement {
 }
 
 customElements.define("joy-rtc", JoyRtcComponent);
+
 export default JoyRtcComponent;
