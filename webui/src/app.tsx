@@ -1,5 +1,5 @@
 import "./app.css"
-import '../../webcomponent/index'
+import '../../webcomponents/index'
 
 import { ProtoHttpToWs } from './util';
 
