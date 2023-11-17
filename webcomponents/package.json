@@ -9,7 +9,8 @@
   "dependencies": {
     "nipplejs": "^0.10.1",
     "path": "^0.12.7",
-    "terser": "^5.24.0"
+    "terser": "^5.24.0",
+    "vite-plugin-css-injected-by-js": "^3.3.0"
   },
   "devDependencies": {
     "less": "^4.2.0",
