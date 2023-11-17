@@ -1,7 +1,7 @@
 import "./app.css"
 import { ProtoHttpToWs } from './util';
-// todo: replace to import from npm package
-import "../../webcomponents/dist/";
+// todo: replace with import from npm package
+import "../../webcomponents";
 
 function App() {
   return (
