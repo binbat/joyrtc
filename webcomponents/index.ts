@@ -1,16 +1,9 @@
-import JoyRtcComponent from './model/joy-rtc'
-import { DOMAttributes } from "react"
+/// <reference path="./types/components.d.ts" />
 
-type CustomElement<T> = Partial<T & DOMAttributes<T> & { children: any } & { style?: any }>;
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      ['joy-rtc']: CustomElement<JoyRtcComponent>;
-    }
-  }
-}
+import './style/index.css'
+import "./model/joy-rtc"
 
 
-export * from "./model/joy-rtc"
+
+
 
