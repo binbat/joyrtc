@@ -11,7 +11,7 @@ class JoyRtcComponent extends HTMLElement {
 	private domWsState: HTMLParagraphElement;
 	private domPcState: HTMLParagraphElement;
 	private domDcState: HTMLParagraphElement;
-	private domGamepadState: HTMLParagraphElement; // 添加了domGamepadState变量
+	private domGamepadState: HTMLParagraphElement; // Added the variable domGamepadState
 
 	private gamepadIndex: number | null = null;
     private gamepadAxesListener: ((event: GamepadEvent) => void) | null = null;
@@ -35,8 +35,8 @@ class JoyRtcComponent extends HTMLElement {
 		this.domDcState = document.createElement("p");
 		this.bar.appendChild(this.domDcState);
 
-		this.domGamepadState = document.createElement("p"); // 添加了domGamepadState初始化
-		this.bar.appendChild(this.domGamepadState); // 添加了domGamepadState元素
+		this.domGamepadState = document.createElement("p"); // Added initialization for the domGamepadState variable
+		this.bar.appendChild(this.domGamepadState); // Added the domGamepadState element
 
 		this.websocketState = "uninit";
 		this.webrtcState = "uninit";
@@ -57,7 +57,7 @@ class JoyRtcComponent extends HTMLElement {
 		});
 		this.root.appendChild(buttonClick);
 
-		// 创建两个容器
+		// Created two containers
 		const pad1 = document.createElement("div");
 		pad1.innerText = "摇杆1";
 		const pad2 = document.createElement("div");
@@ -69,7 +69,7 @@ class JoyRtcComponent extends HTMLElement {
 		this.root.appendChild(pad1);
 		this.root.appendChild(pad2);
 
-		// 创建第一个摇杆
+		// Created the first joystick
 		const instance1 = nipplejs.create({
 			zone: ipad1,
 			mode: "static",
@@ -86,7 +86,7 @@ class JoyRtcComponent extends HTMLElement {
 			this.dc?.send(JSON.stringify(message));
 		});
 
-		// 创建第二个摇杆
+		// Created the second joystick
 		const instance2 = nipplejs.create({
 			zone: ipad2,
 			mode: "static",
@@ -198,13 +198,13 @@ class JoyRtcComponent extends HTMLElement {
 		pc.oniceconnectionstatechange = (_) => (this.webrtcState = pc.iceConnectionState);
 		pc.addTransceiver("video", { direction: "recvonly" });
 
-    //// 添加接收音频的轨道
+    //// Added the audio track for receiving audio
     //pc.addTransceiver("audio", { direction: "recvonly" });
 
 		pc.ontrack = (event) => {
       if (event.track.kind === "audio")
       {
-        // 处理接收到的音频轨道
+        // Processed the received audio track
         const audioElement = document.createElement("audio");
         audioElement.srcObject = event.streams[0];
         audioElement.autoplay = true;
@@ -215,7 +215,7 @@ class JoyRtcComponent extends HTMLElement {
       }
       else if (event.track.kind === "video")
       {
-        // 处理接收到的视频轨道
+        // Processed the received video track
         const videoElement = document.createElement("video");
         videoElement.srcObject = event.streams[0];
         videoElement.autoplay = true;
@@ -244,9 +244,9 @@ class JoyRtcComponent extends HTMLElement {
             if (gamepad) {
               const axes = gamepad.axes;
 
-              // 判断摇杆数量
+              // Check the number of joysticks
               if (axes.length >= 4) {
-                // 检查摇杆是否停止移动
+                // Check if the joystick has stopped moving
                 const joystick1 = { x: axes[0] || 0, y: -(axes[1] || 0) };
                 const joystick2 = { x: axes[2] || 0, y: -(axes[3] || 0) };
 
@@ -266,7 +266,7 @@ class JoyRtcComponent extends HTMLElement {
             this.gamepadIndex = null;
             this.domGamepadState.innerHTML = `gamepad: disconnected`;
 
-            // 移除停止监听器
+            // Removed the stop listener
             window.removeEventListener("gamepaddisconnected", this.gamepadAxesListener!);
             this.gamepadAxesListener = null;
         });
