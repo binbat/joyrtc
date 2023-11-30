@@ -1,158 +1,159 @@
 import nipplejs from "nipplejs";
 
 class JoyRtcComponent extends HTMLElement {
-	private ws: WebSocket | null = null;
-	private pc: RTCPeerConnection | null = null;
-	private dc: RTCDataChannel | null = null;
+  private ws: WebSocket | null = null;
+  private pc: RTCPeerConnection | null = null;
+  private dc: RTCDataChannel | null = null;
 
-	private bar: HTMLDivElement;
-	private root: ShadowRoot;
+  private bar: HTMLDivElement;
+  private root: ShadowRoot;
 
-	private domWsState: HTMLParagraphElement;
-	private domPcState: HTMLParagraphElement;
-	private domDcState: HTMLParagraphElement;
-	private domGamepadState: HTMLParagraphElement; // Added the variable domGamepadState
+  private domWsState: HTMLSpanElement;
+  private domPcState: HTMLSpanElement;
+  private domDcState: HTMLSpanElement;
+  private domGamepadState: HTMLSpanElement; // Added the variable domGamepadState
 
-	private gamepadIndex: number | null = null;
-    private gamepadAxesListener: ((event: GamepadEvent) => void) | null = null;
+  private gamepadIndex: number | null = null;
+  private gamepadAxesListener: ((event: GamepadEvent) => void) | null = null;
 
-	constructor() {
-		super();
-		const template = document.createElement("template");
+  constructor() {
+    super();
+    const template = document.createElement("template");
 
-		this.root = this.attachShadow({ mode: "closed" });
-		this.bar = document.createElement("div");
-		this.bar.style.display = "flex";
-		this.bar.style.justifyContent = "space-evenly";
-		this.root.appendChild(this.bar);
+    this.root = this.attachShadow({ mode: "closed" });
 
-		this.domWsState = document.createElement("p");
-		this.bar.appendChild(this.domWsState);
+    const buttonStart = document.createElement("button");
+    buttonStart.onclick = () => {
+      this.startWebsocket();
+    };
+    buttonStart.textContent = "start";
 
-		this.domPcState = document.createElement("p");
-		this.bar.appendChild(this.domPcState);
+    this.root.appendChild(buttonStart);
 
-		this.domDcState = document.createElement("p");
-		this.bar.appendChild(this.domDcState);
+    this.bar = document.createElement("div");
+    this.bar.style.display = "flex";
+    this.bar.style.justifyContent = "space-evenly";
+    this.bar.style.columnGap = "1em";
+    this.root.appendChild(this.bar);
 
-		this.domGamepadState = document.createElement("p"); // Added initialization for the domGamepadState variable
-		this.bar.appendChild(this.domGamepadState); // Added the domGamepadState element
+    this.domWsState = document.createElement("span");
+    this.bar.appendChild(this.domWsState);
 
-		this.websocketState = "uninit";
-		this.webrtcState = "uninit";
-		this.dataChannelState = "uninit";
+    this.domPcState = document.createElement("span");
+    this.bar.appendChild(this.domPcState);
 
-		const buttonStart = document.createElement("button");
-		buttonStart.onclick = () => {
-			this.startWebsocket();
-		};
-		buttonStart.innerText = "start";
+    this.domDcState = document.createElement("span");
+    this.bar.appendChild(this.domDcState);
 
-		this.bar.appendChild(buttonStart);
+    this.domGamepadState = document.createElement("span"); // Added initialization for the domGamepadState variable
+    this.bar.appendChild(this.domGamepadState); // Added the domGamepadState element
 
-		const buttonClick = document.createElement("button");
-		buttonClick.innerText = "切换相机模式";
-		buttonClick.addEventListener("click", () => {
-			this.handleClick();
-		});
-		this.root.appendChild(buttonClick);
+    this.websocketState = "uninit";
+    this.webrtcState = "uninit";
+    this.dataChannelState = "uninit";
 
-		// Created two containers
-		const pad1 = document.createElement("div");
-		pad1.innerText = "摇杆1";
-		const pad2 = document.createElement("div");
-		pad2.innerText = "摇杆2";
-		const ipad1 = document.createElement("div");
-		const ipad2 = document.createElement("div");
-		pad1.appendChild(ipad1);
-		pad2.appendChild(ipad2);
-		this.root.appendChild(pad1);
-		this.root.appendChild(pad2);
+    const buttonClick = document.createElement("button");
+    buttonClick.textContent = "切换相机模式";
+    buttonClick.addEventListener("click", () => {
+      this.handleClick();
+    });
+    this.root.appendChild(buttonClick);
 
-		// Created the first joystick
-		const instance1 = nipplejs.create({
-			zone: ipad1,
-			mode: "static",
-			position: {
-				top: "50%",
-				left: "25%",
-			},
-			dynamicPage: true,
-			restOpacity: 0.6,
-			fadeTime: 200,
-		});
-		instance1.on("move", (_, data) => {
-			const message = { joystick1: { x: data.vector.x, y: data.vector.y } };
-			this.dc?.send(JSON.stringify(message));
-		});
+    // Created joystick containers
+    // nipplejs reads `options.zone.parentElement` for position
+    const zones = document.createElement("div");
+    const zone1 = document.createElement("div");
+    const zone2 = document.createElement("div");
+    zones.appendChild(zone1);
+    zones.appendChild(zone2);
+    this.root.appendChild(zones);
 
-		// Created the second joystick
-		const instance2 = nipplejs.create({
-			zone: ipad2,
-			mode: "static",
-			position: {
-				top: "50%",
-				left: "75%",
-			},
-			dynamicPage: true,
-			restOpacity: 0.6,
-			fadeTime: 200,
-		});
-		instance2.on("move", (_, data) => {
-			const message = { joystick2: { x: data.vector.x, y: data.vector.y } };
-			this.dc?.send(JSON.stringify(message));
-		});
+    // Created the first joystick
+    const instance1 = nipplejs.create({
+      zone: zone1,
+      color: 'black',
+      mode: "static",
+      position: {
+        top: "50%",
+        left: "25%",
+      },
+      dynamicPage: true,
+      restOpacity: 0.6,
+      fadeTime: 200,
+    });
+    instance1.on("move", (_, data) => {
+      const message = { joystick1: { x: data.vector.x, y: data.vector.y } };
+      this.dc?.send(JSON.stringify(message));
+    });
 
-		const content = template.content.cloneNode(true);
-		this.root.appendChild(content);
-	}
+    // Created the second joystick
+    const instance2 = nipplejs.create({
+      zone: zone2,
+      color: 'black',
+      mode: "static",
+      position: {
+        top: "50%",
+        left: "75%",
+      },
+      dynamicPage: true,
+      restOpacity: 0.6,
+      fadeTime: 200,
+    });
+    instance2.on("move", (_, data) => {
+      const message = { joystick2: { x: data.vector.x, y: data.vector.y } };
+      this.dc?.send(JSON.stringify(message));
+    });
 
-	set websocketState(state: string) {
-		this.domWsState.innerText = `websocket: ${state}`;
-	}
+    const content = template.content.cloneNode(true);
+    this.root.appendChild(content);
+  }
 
-	set webrtcState(state: string) {
-		this.domPcState.innerText = `webrtc: ${state}`;
-	}
+  set websocketState(state: string) {
+    this.domWsState.innerText = `websocket: ${state}`;
+  }
 
-	set dataChannelState(state: string) {
-		this.domDcState.innerText = `dataChannel: ${state}`;
-	}
+  set webrtcState(state: string) {
+    this.domPcState.innerText = `webrtc: ${state}`;
+  }
 
-	get debug(): boolean {
-		return !!this.getAttribute("debug");
-	}
+  set dataChannelState(state: string) {
+    this.domDcState.innerText = `dataChannel: ${state}`;
+  }
 
-	get autoplay(): boolean {
-		return !!this.getAttribute("autoplay");
-	}
+  get debug(): boolean {
+    return !!this.getAttribute("debug");
+  }
 
-	get address(): string {
-		return this.getAttribute("address") || "";
-	}
+  get autoplay(): boolean {
+    return !!this.getAttribute("autoplay");
+  }
 
-	set address(value: string) {
-		this.setAttribute("address", value);
-	}
+  get address(): string {
+    return this.getAttribute("address") || "";
+  }
 
-	startWebsocket() {
-		console.log("websocket start");
-		this.ws = new WebSocket(this.address);
-		this.ws.onopen = (ev) => {
-			console.log("onopen", ev);
-			this.websocketState = ev.type;
-			this.startWebRTC();
-		};
-		this.ws.onclose = (ev) => (this.websocketState = ev.type);
-		this.ws.onerror = (ev) => (this.websocketState = ev.type);
+  set address(value: string) {
+    this.setAttribute("address", value);
+  }
 
-		this.ws.onmessage = (ev) => {
-			console.log("onmessage", ev.data);
-			const sdp = JSON.parse(ev.data);
-			console.log(sdp);
-			if (sdp.type === "answer") {
-				if (!this.pc) return;
-				this.pc.setRemoteDescription(sdp);
+  startWebsocket() {
+    console.log("websocket start");
+    this.ws = new WebSocket(this.address);
+    this.ws.onopen = (ev) => {
+      console.log("onopen", ev);
+      this.websocketState = ev.type;
+      this.startWebRTC();
+    };
+    this.ws.onclose = (ev) => (this.websocketState = ev.type);
+    this.ws.onerror = (ev) => (this.websocketState = ev.type);
+
+    this.ws.onmessage = (ev) => {
+      console.log("onmessage", ev.data);
+      const sdp = JSON.parse(ev.data);
+      console.log(sdp);
+      if (sdp.type === "answer") {
+        if (!this.pc) return;
+        this.pc.setRemoteDescription(sdp);
       } else if (sdp.type === "ice") {
         this.pc?.addIceCandidate(new RTCIceCandidate({
           //sdpMLineIndex: sdp.id,
@@ -160,76 +161,73 @@ class JoyRtcComponent extends HTMLElement {
           candidate: sdp.candidate,
         }));
       }
-		};
-		this.startGamepadListening();
-	}
+    };
+    this.startGamepadListening();
+  }
 
-	async startWebRTC() {
-		console.log(this.ws);
-		if (!this.ws) return;
-		this.webrtcState = "init";
-		const ws = this.ws;
-		const pc = new RTCPeerConnection({
-        iceServers: [
-          {
-            urls: ["stun:stun.22333.fun"],
-          },
-          {
-            urls: "turn:turn.22333.fun",
-            username: "filegogo",
-            credential: "filegogo",
-          },
-        ],
+  async startWebRTC() {
+    console.log(this.ws);
+    if (!this.ws) return;
+    this.webrtcState = "init";
+    const ws = this.ws;
+    const pc = new RTCPeerConnection({
+      iceServers: [
+        {
+          urls: ["stun:stun.22333.fun"],
+        },
+        {
+          urls: "turn:turn.22333.fun",
+          username: "filegogo",
+          credential: "filegogo",
+        },
+      ],
     });
-		this.pc = pc;
+    this.pc = pc;
 
-		this.dc = pc.createDataChannel("data", {
-			negotiated: true,
-			id: 0,
-		});
+    this.dc = pc.createDataChannel("data", {
+      negotiated: true,
+      id: 0,
+    });
 
-		this.dc.onopen = (ev) => (this.dataChannelState = ev.type);
-		this.dc.onclose = (ev) => (this.dataChannelState = ev.type);
-		this.dc.onerror = (ev) => (this.dataChannelState = ev.type);
-		this.dc.onmessage = (ev) => console.log(ev.data);
+    this.dc.onopen = (ev) => (this.dataChannelState = ev.type);
+    this.dc.onclose = (ev) => (this.dataChannelState = ev.type);
+    this.dc.onerror = (ev) => (this.dataChannelState = ev.type);
+    this.dc.onmessage = (ev) => console.log(ev.data);
 
-		pc.onicecandidate = (ev: RTCPeerConnectionIceEvent) =>
-			ev.candidate ? console.log(ev) : ws.send(JSON.stringify(pc.localDescription));
-		pc.oniceconnectionstatechange = (_) => (this.webrtcState = pc.iceConnectionState);
-		pc.addTransceiver("video", { direction: "recvonly" });
+    pc.onicecandidate = (ev: RTCPeerConnectionIceEvent) =>
+      ev.candidate ? console.log(ev) : ws.send(JSON.stringify(pc.localDescription));
+    pc.oniceconnectionstatechange = () => (this.webrtcState = pc.iceConnectionState);
+    pc.addTransceiver("video", { direction: "recvonly" });
 
     //// Added the audio track for receiving audio
     //pc.addTransceiver("audio", { direction: "recvonly" });
 
-		pc.ontrack = (event) => {
-      if (event.track.kind === "audio")
-      {
+    pc.ontrack = (event) => {
+      if (event.track.kind === "audio") {
         // Processed the received audio track
         const audioElement = document.createElement("audio");
         audioElement.srcObject = event.streams[0];
         audioElement.autoplay = true;
-        audioElement.controls = true;
         audioElement.muted = false;
 
-        document.body.appendChild(audioElement);
+        this.root.appendChild(audioElement);
       }
-      else if (event.track.kind === "video")
-      {
+      else if (event.track.kind === "video") {
         // Processed the received video track
         const videoElement = document.createElement("video");
         videoElement.srcObject = event.streams[0];
         videoElement.autoplay = true;
-        videoElement.controls = true;
         videoElement.muted = false;
+        videoElement.style.overflow = "hidden";
 
-        document.body.appendChild(videoElement);
+        this.root.appendChild(videoElement);
       }
-		};
+    };
 
-		const offer = await pc.createOffer();
-		await pc.setLocalDescription(offer);
-		this.startGamepadListening();
-	}
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    this.startGamepadListening();
+  }
 
   private startGamepadListening() {
     if (!this.gamepadIndex) {
@@ -262,32 +260,32 @@ class JoyRtcComponent extends HTMLElement {
         window.requestAnimationFrame(this.checkGamepadAxes);
       }
 
-        window.addEventListener("gamepaddisconnected", () => {
-            this.gamepadIndex = null;
-            this.domGamepadState.innerHTML = `gamepad: disconnected`;
+      window.addEventListener("gamepaddisconnected", () => {
+        this.gamepadIndex = null;
+        this.domGamepadState.innerHTML = `gamepad: disconnected`;
 
-            // Removed the stop listener
-            window.removeEventListener("gamepaddisconnected", this.gamepadAxesListener!);
-            this.gamepadAxesListener = null;
-        });
+        // Removed the stop listener
+        window.removeEventListener("gamepaddisconnected", this.gamepadAxesListener!);
+        this.gamepadAxesListener = null;
+      });
     }
     window.requestAnimationFrame(this.checkGamepadAxes);
-}
-	    private checkGamepadAxes = () => {
-        if (this.gamepadIndex !== null && this.gamepadAxesListener) {
-            const gamepad = navigator.getGamepads()[this.gamepadIndex];
-            if (gamepad) {
-                this.gamepadAxesListener(new GamepadEvent("gamepaddisconnected", { gamepad }));
-            }
-        }
-
-        window.requestAnimationFrame(this.checkGamepadAxes);
+  }
+  private checkGamepadAxes = () => {
+    if (this.gamepadIndex !== null && this.gamepadAxesListener) {
+      const gamepad = navigator.getGamepads()[this.gamepadIndex];
+      if (gamepad) {
+        this.gamepadAxesListener(new GamepadEvent("gamepaddisconnected", { gamepad }));
+      }
     }
 
-	handleClick() {
-	const message = { type: "camera_mode_toggle" };
-	 this.dc?.send(JSON.stringify(message));
-	}
+    window.requestAnimationFrame(this.checkGamepadAxes);
+  }
+
+  handleClick() {
+    const message = { type: "camera_mode_toggle" };
+    this.dc?.send(JSON.stringify(message));
+  }
 
   // WebComponents hook
   // https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#using_the_lifecycle_callbacks
