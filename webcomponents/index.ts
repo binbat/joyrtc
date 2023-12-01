@@ -1,5 +1,4 @@
 /// <reference path="./types/components.d.ts" />
-
 import './style/index.css'
 import "./model/joy-rtc"
 import JoyRtcComponent from './model/joy-rtc';
