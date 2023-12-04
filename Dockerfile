@@ -46,7 +46,9 @@ RUN chmod +x /usr/lib/joyrtc-unity/joyrtc-unity
 
 # But, VirtualGL have some problems, I don't know how to solve this problem
 # https://www.reddit.com/r/debian/comments/vpexd2/remote_xserver_on_headless_debian/
-RUN apt update -y && apt install --no-install-recommends -y libx11-dev tigervnc-standalone-server x11-xserver-utils
+# - tigervnc-standalone-server: VirtualGL
+# - procps: `/bin/ps` multirun.sh need `ps`
+RUN apt update -y && apt install --no-install-recommends -y libx11-dev tigervnc-standalone-server x11-xserver-utils procps
 
 EXPOSE 8080/tcp
 

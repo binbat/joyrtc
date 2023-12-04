@@ -45,4 +45,5 @@ Example:
 
 - Metal A-wing, @a-wing, 2023/10/16
 - tulingcheng, @tulingcheng86, 2023/10/17
+- yuzhitao, @Qixiu33, 2023/11/18
 - Opacity, @zreren, 2023/11/2

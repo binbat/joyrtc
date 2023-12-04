@@ -86,7 +86,7 @@ public class joyrtc : MonoBehaviour
       pcSenders.Add(_pc.AddTrack(track, videoStream));
     }
 
-    // 添加音频轨道
+    // Added the audio track
     foreach (var track in audioStream.GetTracks())
     {
       Debug.Log("track: " + track);
@@ -193,17 +193,17 @@ public class joyrtc : MonoBehaviour
       float joystick2Y = messageData.joystick2.y;
       Debug.Log(message);
 
-      //前端按下button后切换模式
+      // Switched modes after pressing the button in the frontend
       if (dataChannel != null && message == "{\"type\":\"camera_mode_toggle\"}")
       {
         enableCameraModeToggle = true;
       }
-      // 将x和y应用到物体的移动
+      // Applied x and y to object movement
 
-      // 旋转
+      // Object rotation
       cube.transform.rotation *= Quaternion.Euler(0, joystick2X * 2f, 0);
 
-      // 移动
+      // Object movement
       Vector3 forwardVector = cube.transform.forward;
       Vector3 rightVector = cube.transform.right;
       Vector3 verticalMovement = cube.transform.up * joystick2Y * 0.1f;
@@ -225,7 +225,7 @@ public class joyrtc : MonoBehaviour
       _pc.AddTrack(track, videoStream);
     }
 
-    //调用AddTracks()方法来添加音频轨道到WebRTC
+    // Calling the AddTracks() method to add audio tracks to WebRTC
     foreach (var track in audioStream.GetTracks())
     {
       Debug.Log("track: " + track);
@@ -268,14 +268,14 @@ public class joyrtc : MonoBehaviour
     pcSenders = new List<RTCRtpSender>();
     audioStream = new MediaStream();
 
-    // audioSource 是否为 null
+    // Check if audioSource is null
     if (audioSource != null)
     {
       Debug.Log("audioSource exists!");
-      // 创建 `AudioStreamTrack` 对象并将 `audioSource` 作为参数传递
+      // Create an AudioStreamTrack object and pass audioSource as a parameter
       audioStreamTrack = new AudioStreamTrack(audioSource);
 
-      // 将音频轨道添加到 WebRTC 连接的音频流中
+      // Add the audio track to the audio stream of the WebRTC connection
       _pc.AddTrack(audioStreamTrack, audioStream);
     }
     else
