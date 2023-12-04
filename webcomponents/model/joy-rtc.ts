@@ -300,4 +300,5 @@ class JoyRtcComponent extends HTMLElement {
 }
 
 customElements.define("joy-rtc", JoyRtcComponent);
+
 export default JoyRtcComponent;
