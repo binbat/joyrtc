@@ -5,7 +5,10 @@ WORKDIR /src
 COPY webui/package.json webui/package-lock.json .
 RUN npm install
 
-COPY webui .
+COPY webcomponents webcomponents
+COPY webui webui
+
+WORKDIR /src/webui
 
 RUN npm run build
 
@@ -18,7 +21,7 @@ RUN go mod download
 
 COPY cloud .
 
-COPY --from=builder-webui /src/dist /src/dist
+COPY --from=builder-webui /src/webui/dist /src/dist
 
 RUN go build -tags release -o joyrtc-cloud
 

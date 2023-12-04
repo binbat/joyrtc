@@ -1,7 +1,13 @@
 # Logs
+
+webcomponents/**/logs
+webcomponents/**/*.log
+webcomponents/**/node_modules
+webcomponents/**/dist
+webcomponents/**/*.local
+
 webui/**/logs
 webui/**/*.log
-
 webui/**/node_modules
 webui/**/dist
 webui/**/*.local
