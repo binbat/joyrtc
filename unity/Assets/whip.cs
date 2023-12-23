@@ -28,6 +28,7 @@ public class WhipClient
   private string resourceURL;
   private Task iceTrickeTimeout;
   private bool restartIce;
+  private string etag;
 
   private class Media
   {
@@ -127,7 +128,11 @@ public class WhipClient
       }
 
       // Get the resource url
-      var resourceURL = new Uri(httpClient.GetResponseHeaders()["location"], UriKind.RelativeOrAbsolute);
+      var ub = new UriBuilder(url);
+      ub.Path = httpClient.GetResponseHeaders()["location"];
+      resourceURL = ub.ToString();
+
+      etag = httpClient.GetResponseHeaders()["e-tag"];
 
       // Get the links
       var links = new Dictionary<string, List<(string Url, Dictionary<string, string> Params)>>();
@@ -233,8 +238,8 @@ public class WhipClient
     yield return pc.SetRemoteDescription(ref desc);
 
     // Schedule trickle on next tick
-    if (this.iceTrickeTimeout == null)
-      this.iceTrickeTimeout = Task.Delay(0).ContinueWith(_ => this.Tricke());
+    // if (this.iceTrickeTimeout == null)
+    //   this.iceTrickeTimeout = Task.Delay(0).ContinueWith(_ => this.Tricke());
 
     // Set local description
     yield return pc.SetLocalDescription(ref rsd);
@@ -252,6 +257,7 @@ public class WhipClient
     this.ICE_Password = Regex.Match(rsd.sdp, @"a=ice-pwd:(.*)\r\n").Groups[1].Value;
     //}
 
+    yield return this.Tricke();
 
   }
 
@@ -304,7 +310,7 @@ public class WhipClient
         "a=ice-pwd:" + ICE_Password + "\r\n";
 
     // Get peer connection transceivers
-    RTCRtpTransceiver[] transceivers = (RTCRtpTransceiver[])this.pc.GetTransceivers();
+    RTCRtpTransceiver[] transceivers = this.pc.GetTransceivers().ToArray();
     // Get medias
     Dictionary<string, Media> medias = new Dictionary<string, Media>();
 
@@ -362,15 +368,18 @@ public class WhipClient
     // Do the post request to the WHIP resource
     using (UnityWebRequest client = new UnityWebRequest(resourceURL, "PATCH"))
     {
-      byte[] bodyRaw = Encoding.UTF8.GetBytes(fragment);
-      client.uploadHandler = new UploadHandlerRaw(bodyRaw);
-      client.SetRequestHeader("Content-Type", "application/trickle-ice-sdpfrag");
+      var content = new UploadHandlerRaw(Encoding.UTF8.GetBytes(fragment));
+      content.contentType = "application/trickle-ice-sdpfrag";
+      client.uploadHandler = content;
+      client.downloadHandler = new DownloadHandlerBuffer();
+      client.SetRequestHeader("If-Match", etag);
 
       yield return client.SendWebRequest();
 
       if (client.result != UnityWebRequest.Result.Success)
       {
         Debug.LogError("Request rejected with status " + client.responseCode);
+        Debug.LogError(client.downloadHandler.text);
         yield break;
       }
 

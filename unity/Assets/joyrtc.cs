@@ -154,6 +154,7 @@ public class joyrtc : MonoBehaviour
 
     _pc.OnIceCandidate = candidate => {
       Debug.Log("ICE: " + candidate.Candidate);
+      if (whip) return;
 
       // https://docs.unity3d.com/Packages/com.unity.webrtc@3.0/api/Unity.WebRTC.RTCIceCandidate.html#Unity_WebRTC_RTCIceCandidate_SdpMLineIndex
       //if (candidate.SdpMLineIndex.HasValue) {
