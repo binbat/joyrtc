@@ -85,8 +85,9 @@ public class WhipClient
     };
 
     // Create SDP offer
-    var offer = pc.CreateOffer().Desc;
+    var offer = pc.CreateOffer();
     yield return offer;
+    RTCSessionDescription rsd = offer.Desc;
 
     // Request headers
     var headers = new Dictionary<string, string>
@@ -101,14 +102,15 @@ public class WhipClient
     RTCSessionDescription desc;
     using (var httpClient = new UnityWebRequest(url, "POST"))
     {
-      if (offer.sdp == null)
+      if (rsd.sdp == null)
       {
         Debug.LogError("Offer SDP is null");
         yield return 0;
       }
-      var content = new UploadHandlerRaw(Encoding.UTF8.GetBytes(offer.sdp));
-      content.contentType = "application/json";
+      var content = new UploadHandlerRaw(Encoding.UTF8.GetBytes(rsd.sdp));
+      content.contentType = "application/sdp";
       httpClient.uploadHandler = content;
+      httpClient.downloadHandler = new DownloadHandlerBuffer();
 
       yield return httpClient.SendWebRequest();
 
@@ -227,7 +229,7 @@ public class WhipClient
       string answer = httpClient.downloadHandler.text;
       desc = new RTCSessionDescription { type = RTCSdpType.Answer, sdp = answer };
     }
-    
+
     yield return pc.SetRemoteDescription(ref desc);
 
     // Schedule trickle on next tick
@@ -235,7 +237,7 @@ public class WhipClient
       this.iceTrickeTimeout = Task.Delay(0).ContinueWith(_ => this.Tricke());
 
     // Set local description
-    yield return pc.SetLocalDescription(ref offer);
+    yield return pc.SetLocalDescription(ref rsd);
 
     // TODO: Chrome is returning a wrong value, so don't use it for now
     //try {
@@ -246,11 +248,11 @@ public class WhipClient
     //	this.icePassword = local.password;
     //} catch (e) {
     //Fallback for browsers not supporting ice transport
-    this.ICE_Username = Regex.Match(offer.sdp, @"a=ice-ufrag:(.*)\r\n").Groups[1].Value;
-    this.ICE_Password = Regex.Match(offer.sdp, @"a=ice-pwd:(.*)\r\n").Groups[1].Value;
+    this.ICE_Username = Regex.Match(rsd.sdp, @"a=ice-ufrag:(.*)\r\n").Groups[1].Value;
+    this.ICE_Password = Regex.Match(rsd.sdp, @"a=ice-pwd:(.*)\r\n").Groups[1].Value;
     //}
 
-    
+
   }
 
 

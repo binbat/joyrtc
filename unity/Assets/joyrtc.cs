@@ -44,7 +44,9 @@ public class joyrtc : MonoBehaviour
 
   private bool enableCameraModeToggle = false;
   private bool connected;
+  private bool whip = false;
 	private WebSocket ws;
+  private WhipClient whipClient;
 	private RTCSessionDescription? sdp;
 	private RTCPeerConnection _pc;
 	private MediaStream videoStream;
@@ -255,6 +257,8 @@ public class joyrtc : MonoBehaviour
   void Start()
   {
     Debug.Log("=== Start !! ===");
+    string whipServerUrl = System.Environment.GetEnvironmentVariable("WHIP_SERVER_URL");
+    whip = !string.IsNullOrEmpty(whipServerUrl);
     Debug.Log(cam);
     if (videoStream == null)
     {
@@ -283,9 +287,23 @@ public class joyrtc : MonoBehaviour
       Debug.Log("audioSource does not exist!");
     }
 
+    if (whip)
+    {
+      StartWHIP(whipServerUrl);
+    }
+    else
+    {
+      StartWebSocket();
+    }
 
+    Debug.Log("=== Start END ===");
+  }
+
+  void StartWebSocket() {
     string envServerUrl = System.Environment.GetEnvironmentVariable("SERVER_URL");
     string serverUrl = string.IsNullOrEmpty(envServerUrl) ? DefaultServer : envServerUrl;
+    Debug.Log("=== StartWebSocket ===");
+    Debug.Log("serverUrl: " + serverUrl);
     ws = new WebSocket(serverUrl);
     ws.OnMessage += (sender, e) => {
       Debug.Log("Received message: " + e.Data);
@@ -303,7 +321,13 @@ public class joyrtc : MonoBehaviour
     };
 
     ws.Connect();
-    Debug.Log("=== Start END ===");
+  }
+
+  void StartWHIP(string whipServerUrl) {
+    Debug.Log("=== StartWHIP ===");
+    Debug.Log("whipServerUrl: " + whipServerUrl);
+    whipClient = new WhipClient();
+    StartCoroutine(whipClient.Publish(_pc, whipServerUrl, ""));
   }
 
   void Update()
