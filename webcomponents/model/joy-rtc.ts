@@ -1,4 +1,5 @@
 import nipplejs from "nipplejs";
+import WHEPClient from '@binbat/whip-whep/whep';
 
 class JoyRtcComponent extends HTMLElement {
   private ws: WebSocket | null = null;
@@ -24,7 +25,7 @@ class JoyRtcComponent extends HTMLElement {
 
     const buttonStart = document.createElement("button");
     buttonStart.onclick = () => {
-      this.startWebsocket();
+      this.handlePlay();
     };
     buttonStart.textContent = "start";
 
@@ -124,6 +125,10 @@ class JoyRtcComponent extends HTMLElement {
     return !!this.getAttribute("debug");
   }
 
+  get whep(): boolean {
+    return !!this.getAttribute("whep");
+  }
+
   get autoplay(): boolean {
     return !!this.getAttribute("autoplay");
   }
@@ -165,11 +170,7 @@ class JoyRtcComponent extends HTMLElement {
     this.startGamepadListening();
   }
 
-  async startWebRTC() {
-    console.log(this.ws);
-    if (!this.ws) return;
-    this.webrtcState = "init";
-    const ws = this.ws;
+  private createPeerConnection(): RTCPeerConnection {
     const pc = new RTCPeerConnection({
       iceServers: [
         {
@@ -182,26 +183,6 @@ class JoyRtcComponent extends HTMLElement {
         },
       ],
     });
-    this.pc = pc;
-
-    this.dc = pc.createDataChannel("data", {
-      negotiated: true,
-      id: 0,
-    });
-
-    this.dc.onopen = (ev) => (this.dataChannelState = ev.type);
-    this.dc.onclose = (ev) => (this.dataChannelState = ev.type);
-    this.dc.onerror = (ev) => (this.dataChannelState = ev.type);
-    this.dc.onmessage = (ev) => console.log(ev.data);
-
-    pc.onicecandidate = (ev: RTCPeerConnectionIceEvent) =>
-      ev.candidate ? console.log(ev) : ws.send(JSON.stringify(pc.localDescription));
-    pc.oniceconnectionstatechange = () => (this.webrtcState = pc.iceConnectionState);
-    pc.addTransceiver("video", { direction: "recvonly" });
-
-    //// Added the audio track for receiving audio
-    //pc.addTransceiver("audio", { direction: "recvonly" });
-
     pc.ontrack = (event) => {
       if (event.track.kind === "audio") {
         // Processed the received audio track
@@ -223,10 +204,46 @@ class JoyRtcComponent extends HTMLElement {
         this.root.appendChild(videoElement);
       }
     };
+    return pc;
+  }
+
+  async startWebRTC() {
+    console.log(this.ws);
+    if (!this.ws) return;
+    this.webrtcState = "init";
+    const ws = this.ws;
+    const pc = this.createPeerConnection();
+    this.pc = pc;
+
+    this.dc = pc.createDataChannel("data", {
+      negotiated: true,
+      id: 0,
+    });
+
+    this.dc.onopen = (ev) => (this.dataChannelState = ev.type);
+    this.dc.onclose = (ev) => (this.dataChannelState = ev.type);
+    this.dc.onerror = (ev) => (this.dataChannelState = ev.type);
+    this.dc.onmessage = (ev) => console.log(ev.data);
+
+    pc.onicecandidate = (ev: RTCPeerConnectionIceEvent) =>
+      ev.candidate ? console.log(ev) : ws.send(JSON.stringify(pc.localDescription));
+    pc.oniceconnectionstatechange = (_) => (this.webrtcState = pc.iceConnectionState);
+    pc.addTransceiver("video", { direction: "recvonly" });
+
+    //// Added the audio track for receiving audio
+    //pc.addTransceiver("audio", { direction: "recvonly" });
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     this.startGamepadListening();
+  }
+
+  startWHEP() {
+    const pc = this.createPeerConnection();
+    pc.addTransceiver('video', { direction: 'recvonly' });
+    pc.addTransceiver('audio', { direction: 'recvonly' });
+    const whep = new WHEPClient();
+    whep.view(pc, this.address);
   }
 
   private startGamepadListening() {
@@ -287,6 +304,14 @@ class JoyRtcComponent extends HTMLElement {
     this.dc?.send(JSON.stringify(message));
   }
 
+  private handlePlay() {
+    if (this.whep) {
+      this.startWHEP();
+    } else {
+      this.startWebsocket();
+    }
+  }
+
   // WebComponents hook
   // https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#using_the_lifecycle_callbacks
   connectedCallback() {
@@ -294,7 +319,7 @@ class JoyRtcComponent extends HTMLElement {
     console.log(navigator.getGamepads());
     if (this.autoplay) {
       console.log("autoplay");
-      this.startWebsocket();
+      this.handlePlay();
     }
   }
 }
