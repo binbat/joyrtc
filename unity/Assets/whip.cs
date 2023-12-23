@@ -346,8 +346,8 @@ public class WhipClient
     {
       // Add media to fragment
       fragment +=
-          "m=" + media.Kind + " 9 RTP/AVP 0\r\n" +
-          "a=mid:" + media.Mid + "\r\n";
+          "m=" + media.Kind.ToString().ToLower() + " 9 RTP/AVP 0\r\n" +
+          "a=mid:" + media.Mid.ToString() + "\r\n";
       // Add candidate
       foreach (RTCIceCandidate candidate in media.Candidates)
         fragment += "a=" + candidate.Candidate + "\r\n";
