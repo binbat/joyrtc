@@ -1,5 +1,5 @@
 import nipplejs from "nipplejs";
-import WHEPClient from '@binbat/whip-whep/whep';
+import { WHEPClient } from '@binbat/whip-whep/whep';
 
 class JoyRtcComponent extends HTMLElement {
   private ws: WebSocket | null = null;

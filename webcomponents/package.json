@@ -7,7 +7,7 @@
     "build": "vite build && tsc"
   },
   "dependencies": {
-    "@binbat/whip-whep": "^1.0.6",
+    "@binbat/whip-whep": "^1.0.7",
     "nipplejs": "^0.10.1"
   },
   "devDependencies": {
