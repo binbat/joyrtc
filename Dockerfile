@@ -1,24 +1,14 @@
 FROM node:20-alpine as builder-webui
 
-WORKDIR /src/webcomponents
-
-COPY webcomponents/package.json webcomponents/package-lock.json .
-
-RUN npm install
-
+WORKDIR /src
 COPY webcomponents webcomponents
-
-WORKDIR /src/webui
-
-COPY webui/package.json webui/package-lock.json .
-
-RUN npm install
-
 COPY webui webui
 
-WORKDIR /src/webui
+WORKDIR /src/webcomponents
+RUN npm ci
 
-RUN npm run build
+WORKDIR /src/webui
+RUN npm ci && npm run build
 
 FROM golang:1.20-alpine AS builder-cloud
 
