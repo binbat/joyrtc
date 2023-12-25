@@ -1,11 +1,19 @@
 FROM node:20-alpine as builder-webui
 
-WORKDIR /src
+WORKDIR /src/webcomponents
 
-COPY webui/package.json webui/package-lock.json .
+COPY webcomponents/package.json webcomponents/package-lock.json .
+
 RUN npm install
 
 COPY webcomponents webcomponents
+
+WORKDIR /src/webui
+
+COPY webui/package.json webui/package-lock.json .
+
+RUN npm install
+
 COPY webui webui
 
 WORKDIR /src/webui
