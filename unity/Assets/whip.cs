@@ -19,6 +19,7 @@ using System.Linq;
 //}
 public class WhipClient
 {
+  private MonoBehaviour mb { get; set; }
   public string ICE_Username { get; set; }
   public string ICE_Password { get; set; }
   public List<RTCIceCandidate> candidates;
@@ -26,7 +27,6 @@ public class WhipClient
   public RTCPeerConnection pc;
   public string token;
   private string resourceURL;
-  private Task iceTrickeTimeout;
   private bool restartIce;
   private string etag;
 
@@ -37,8 +37,9 @@ public class WhipClient
     public List<RTCIceCandidate> Candidates { get; set; }
   }
 
-  public WhipClient()
+  public WhipClient(MonoBehaviour mb)
   {
+    this.mb = mb;
     //Ice properties
     this.ICE_Username = null;
     this.ICE_Password = null;
@@ -58,31 +59,32 @@ public class WhipClient
     this.pc = pc;
 
     // Listen for state change events
-
+    Debug.Log("Listen for candidates");
+    pc.OnIceGatheringStateChange += state =>
+    {
+      Debug.Log("OnIceGatheringStateChange");
+      if (state == RTCIceGatheringState.Complete) {
+        Debug.Log("OnIceGatheringStateChange: Complete");
+        endOfCandidates = true;
+        mb.StartCoroutine(Tricke());
+      }
+    };
 
     // Listen for candidates
-    Debug.Log("Listen for candidates");
     pc.OnIceCandidate += candidate =>
     {
-      if (candidate != null)
-      {
-        // Ignore candidates not from the first m line
-        if (candidate.SdpMLineIndex > 0)
-          // Skip
-          return;
-        // Store candidate
-        this.candidates.Add(candidate);
-      }
-      else
-      {
-        // No more candidates
-        this.endOfCandidates = true;
-      }
-      // Schedule trickle on next tick
+      Debug.Log("OnIceCandidate ");
+      // Ignore candidates not from the first m line
+      if (candidate.SdpMLineIndex > 0)
+        // Skip
+        return;
+      // Store candidate
+      this.candidates.Add(candidate);
+    };
 
-
-      if (iceTrickeTimeout == null)
-        this.iceTrickeTimeout = Task.Delay(0).ContinueWith(_ => this.Tricke());
+    pc.OnConnectionStateChange += state =>
+    {
+      Debug.Log("OnConnectionStateChange: " + state);
     };
 
     // Create SDP offer
@@ -108,6 +110,9 @@ public class WhipClient
         Debug.LogError("Offer SDP is null");
         yield return 0;
       }
+      Debug.Log("=== sdp");
+      Debug.Log(rsd.sdp);
+      Debug.Log("sdp ===");
       var content = new UploadHandlerRaw(Encoding.UTF8.GetBytes(rsd.sdp));
       content.contentType = "application/sdp";
       httpClient.uploadHandler = content;
@@ -194,6 +199,7 @@ public class WhipClient
       // If it has ice server info and it is not overridden by the client
       if ((config.iceServers == null || config.iceServers.Length == 0) && links.ContainsKey("ice-server"))
       {
+        Debug.Log("set config.iceServers");
         // Ice server config
         config.iceServers = new RTCIceServer[] { };
 
@@ -232,41 +238,25 @@ public class WhipClient
 
       // Get the SDP answer
       string answer = httpClient.downloadHandler.text;
+      Debug.Log("=== answer");
+      Debug.Log(answer);
+      Debug.Log("answer ===");
       desc = new RTCSessionDescription { type = RTCSdpType.Answer, sdp = answer };
     }
 
     yield return pc.SetRemoteDescription(ref desc);
 
-    // Schedule trickle on next tick
-    // if (this.iceTrickeTimeout == null)
-    //   this.iceTrickeTimeout = Task.Delay(0).ContinueWith(_ => this.Tricke());
-
-    // Set local description
     yield return pc.SetLocalDescription(ref rsd);
 
-    // TODO: Chrome is returning a wrong value, so don't use it for now
-    //try {
-    //	//Get local ice properties
-    //	const local = this.pc.getTransceivers()[0].sender.transport.iceTransport.getLocalParameters();
-    //	//Get them for transport
-    //	this.iceUsername = local.usernameFragment;
-    //	this.icePassword = local.password;
-    //} catch (e) {
-    //Fallback for browsers not supporting ice transport
     this.ICE_Username = Regex.Match(rsd.sdp, @"a=ice-ufrag:(.*)\r\n").Groups[1].Value;
     this.ICE_Password = Regex.Match(rsd.sdp, @"a=ice-pwd:(.*)\r\n").Groups[1].Value;
-    //}
-
-    yield return this.Tricke();
 
   }
 
 
   public IEnumerator Tricke()
   {
-    // Clear timeout
-    this.iceTrickeTimeout = null;
-
+    Debug.Log("Tricke()");
     // Check if there is any pending data
     if (!(this.candidates.Count > 0 || this.endOfCandidates || restartIce) || string.IsNullOrEmpty(resourceURL))
     {
@@ -369,12 +359,16 @@ public class WhipClient
     using (UnityWebRequest client = new UnityWebRequest(resourceURL, "PATCH"))
     {
       var content = new UploadHandlerRaw(Encoding.UTF8.GetBytes(fragment));
+      Debug.Log("fragment");
+      Debug.Log(fragment);
       content.contentType = "application/trickle-ice-sdpfrag";
       client.uploadHandler = content;
       client.downloadHandler = new DownloadHandlerBuffer();
       client.SetRequestHeader("If-Match", etag);
 
       yield return client.SendWebRequest();
+
+      Debug.Log("trickle-ice responseCode: " + client.responseCode);
 
       if (client.result != UnityWebRequest.Result.Success)
       {
@@ -388,7 +382,8 @@ public class WhipClient
       {
         // Get the SDP answer
         string answer = client.downloadHandler.text;
-        yield return answer;
+        Debug.Log("answer");
+        Debug.Log(answer);
 
         // Get remote ice name and password
         string remoteIceUsername = Regex.Match(answer, @"a=ice-ufrag:(.*)\r\n").Groups[1].Value;
@@ -415,9 +410,6 @@ public class WhipClient
       // Already stopped
       yield return 0;
     }
-
-    // Cancel any pending timeout
-    iceTrickeTimeout = null; // Unity doesn't have clearTimeout, so we simulate it
 
     // Close peer connection
     pc.Close();
@@ -517,10 +509,6 @@ public class WhipClient
   public void restart()
   {
     this.restartIce = true;
-
-    if (this.iceTrickeTimeout != null)
-    {
-      this.iceTrickeTimeout = Task.Delay(0).ContinueWith(_ => this.Tricke());
-    }
+    this.mb.StartCoroutine(this.Tricke());
   }
 }

@@ -38,7 +38,6 @@ public class joyrtc : MonoBehaviour
   [SerializeField] private Camera cam;
   [SerializeField] private GameObject cube;
   [SerializeField] private AudioSource audioSource;
-  private AudioStreamTrack audioStreamTrack;
 
 #pragma warning restore 0649
 
@@ -50,51 +49,37 @@ public class joyrtc : MonoBehaviour
 	private RTCSessionDescription? sdp;
 	private RTCPeerConnection _pc;
 	private MediaStream videoStream;
-
-  private List<RTCRtpSender> pcSenders = new List<RTCRtpSender>();
   private MediaStream audioStream = new MediaStream();
 
   private static RTCConfiguration GetSelectedSdpSemantics()
   {
     RTCConfiguration config = default;
+    var servers = new List<RTCIceServer>();
     string envIceServers = System.Environment.GetEnvironmentVariable("ICE_SERVERS");
     Debug.Log("Use WebRTC IceServers: " + envIceServers);
     if (!string.IsNullOrEmpty(envIceServers))
     {
-      config.iceServers = new[] { new RTCIceServer { urls = new[] { envIceServers } } };
+      servers.Add(new RTCIceServer { urls = new[] { envIceServers } });
     }
 
     string envTurnHostname = System.Environment.GetEnvironmentVariable("TURN_HOSTNAME");
     Debug.Log("Use WebRTC Turn Server: " + envTurnHostname);
-    if (!string.IsNullOrEmpty(envIceServers))
+    if (!string.IsNullOrEmpty(envTurnHostname))
     {
       string envTurnUsername = System.Environment.GetEnvironmentVariable("TURN_USERNAME");
       string envTurnPassword = System.Environment.GetEnvironmentVariable("TURN_PASSWORD");
-      config.iceServers = new[] {new RTCIceServer {
+      servers.Add(new RTCIceServer {
         urls = new[] {envTurnHostname},
         username = envTurnUsername,
         credential = envTurnPassword,
-      }};
+      });
+    }
+
+    if (servers.Count > 0) {
+      config.iceServers = servers.ToArray();
     }
 
     return config;
-  }
-
-  private void AddTracks()
-  {
-    foreach (var track in videoStream.GetTracks())
-    {
-      Debug.Log("track: " + track);
-      pcSenders.Add(_pc.AddTrack(track, videoStream));
-    }
-
-    // Added the audio track
-    foreach (var track in audioStream.GetTracks())
-    {
-      Debug.Log("track: " + track);
-      pcSenders.Add(_pc.AddTrack(track, audioStream));
-    }
-
   }
 
   private IEnumerator OnCreateOffer(RTCPeerConnection pc, RTCSessionDescription desc)
@@ -149,8 +134,6 @@ public class joyrtc : MonoBehaviour
   {
     Debug.Log("=== WebRTC Start ===");
     connected = false;
-    var configuration = GetSelectedSdpSemantics();
-    _pc = new RTCPeerConnection(ref configuration);
 
     _pc.OnIceCandidate = candidate => {
       Debug.Log("ICE: " + candidate.Candidate);
@@ -222,19 +205,10 @@ public class joyrtc : MonoBehaviour
       }
     };
 
-    foreach (var track in videoStream.GetTracks())
+    if (whip)
     {
-      Debug.Log("track: " + track);
-      _pc.AddTrack(track, videoStream);
+      yield return 0;
     }
-
-    // Calling the AddTracks() method to add audio tracks to WebRTC
-    foreach (var track in audioStream.GetTracks())
-    {
-      Debug.Log("track: " + track);
-      _pc.AddTrack(track, audioStream);
-    }
-
 
     RTCSessionDescription offer;
     while (sdp == null)
@@ -261,36 +235,28 @@ public class joyrtc : MonoBehaviour
     string whipServerUrl = System.Environment.GetEnvironmentVariable("WHIP_SERVER_URL");
     whip = !string.IsNullOrEmpty(whipServerUrl);
     Debug.Log(cam);
-    if (videoStream == null)
-    {
-      videoStream = cam.CaptureStream(1280, 720);
-    }
-    StartCoroutine(WebRTC.Update());
-    StartCoroutine(AsyncWebRTCCoroutine());
-
+    videoStream = cam.CaptureStream(1280, 720);
     audioSource = GetComponent<AudioSource>();
 
-    pcSenders = new List<RTCRtpSender>();
-    audioStream = new MediaStream();
+    StartCoroutine(WebRTC.Update());
+    var configuration = GetSelectedSdpSemantics();
+    _pc = new RTCPeerConnection(ref configuration);
 
-    // Check if audioSource is null
-    if (audioSource != null)
+    foreach (var track in videoStream.GetTracks())
     {
-      Debug.Log("audioSource exists!");
-      // Create an AudioStreamTrack object and pass audioSource as a parameter
-      audioStreamTrack = new AudioStreamTrack(audioSource);
-
-      // Add the audio track to the audio stream of the WebRTC connection
-      _pc.AddTrack(audioStreamTrack, audioStream);
+      Debug.Log("video track: " + track);
+      _pc.AddTrack(track, videoStream);
     }
-    else
+    foreach (var track in audioStream.GetTracks())
     {
-      Debug.Log("audioSource does not exist!");
+      Debug.Log("audio track: " + track);
+      _pc.AddTrack(track, audioStream);
     }
+    StartCoroutine(AsyncWebRTCCoroutine());
 
     if (whip)
     {
-      StartWHIP(whipServerUrl);
+      StartWHIP();
     }
     else
     {
@@ -324,10 +290,11 @@ public class joyrtc : MonoBehaviour
     ws.Connect();
   }
 
-  void StartWHIP(string whipServerUrl) {
+  void StartWHIP() {
     Debug.Log("=== StartWHIP ===");
+    string whipServerUrl = System.Environment.GetEnvironmentVariable("WHIP_SERVER_URL");
     Debug.Log("whipServerUrl: " + whipServerUrl);
-    whipClient = new WhipClient();
+    whipClient = new WhipClient(this);
     StartCoroutine(whipClient.Publish(_pc, whipServerUrl, ""));
   }
 
