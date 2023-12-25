@@ -244,9 +244,9 @@ public class WhipClient
       desc = new RTCSessionDescription { type = RTCSdpType.Answer, sdp = answer };
     }
 
-    yield return pc.SetRemoteDescription(ref desc);
-
     yield return pc.SetLocalDescription(ref rsd);
+
+    yield return pc.SetRemoteDescription(ref desc);
 
     this.ICE_Username = Regex.Match(rsd.sdp, @"a=ice-ufrag:(.*)\r\n").Groups[1].Value;
     this.ICE_Password = Regex.Match(rsd.sdp, @"a=ice-pwd:(.*)\r\n").Groups[1].Value;
