@@ -47,3 +47,5 @@ Example:
 - tulingcheng, @tulingcheng86, 2023/10/17
 - yuzhitao, @Qixiu33, 2023/11/18
 - Opacity, @zreren, 2023/11/2
+- Rocket Aaron, @rocka, 2023/11/30
+- guangyongChen，@Lowchicken，2023/12/25
