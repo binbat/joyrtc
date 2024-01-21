@@ -10,7 +10,7 @@ export default defineConfig({
         ws: true,
       },
       '/whep': {
-        target: 'http://localhost:3000'
+        target: 'http://localhost:7777'
       }
     },
   },

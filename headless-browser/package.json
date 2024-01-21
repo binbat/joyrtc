@@ -1,0 +1,22 @@
+{
+  "name": "@joyrtc/headless-browser",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Headless browser adapter for JoyRTC",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5"
+  },
+  "dependencies": {
+    "@binbat/whip-whep": "^1.1.0",
+    "koa": "^2.15.0",
+    "koa-proxies": "^0.12.4",
+    "koa-static": "^5.0.0",
+    "playwright-core": "^1.41.1",
+    "which": "^4.0.0"
+  }
+}
